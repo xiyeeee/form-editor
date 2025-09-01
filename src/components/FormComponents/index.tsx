@@ -1,3 +1,10 @@
+/*
+ * @Author: Xiyeeee
+ * @Date: 2025-08-14 21:06:02
+ * @Description:
+ * @LastEditors: Xiyeeee
+ * @LastEditTime: 2025-09-01 21:15:27
+ */
 import React, { useState, useCallback } from 'react';
 import { Typography, Input, Switch, Tooltip, message } from 'antd';
 import { CopyOutlined, BranchesOutlined, DeleteOutlined } from '@ant-design/icons';
@@ -6,14 +13,26 @@ import type { FormComponent } from '@/store/formSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { updateComponent, setCurrentComponent, setCurrentCompKey } from '@/store/formSlice';
+import styles from './index.module.less';
 
 import InputComponent from './Base/Input';
 import RadioComponent from './Base/Radio';
 import SelectComponent from './Base/Select';
 import TextareaComponent from './Base/Textarea';
+import CheckoutComponent from './Base/Checkout';
+
 import NameComponent from './Contact/Name';
 import PhoneComponent from './Contact/Phone';
 import EmailComponent from './Contact/Email';
+import AddressComponent from './Contact/Address';
+import GenderComponent from './Contact/Gender';
+import IDCardComponent from './Contact/IDCard';
+import TelePhoneComponent from './Contact/TelePhone';
+import WXComponent from './Contact/WX';
+
+import FormTitleComponent from './Show/FormTitle';
+import ImageComponent from './Show/Image';
+import VideoComponent from './Show/Video';
 
 const { Title, Text } = Typography;
 
@@ -52,11 +71,22 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
       Radio: RadioComponent,
       Select: SelectComponent,
       Textarea: TextareaComponent,
+      Checkout: CheckoutComponent,
 
       // Contact components
       Name: NameComponent,
       Phone: PhoneComponent,
       Email: EmailComponent,
+      Address: AddressComponent,
+      Gender: GenderComponent,
+      IDCard: IDCardComponent,
+      TelePhone: TelePhoneComponent,
+      WX: WXComponent,
+
+      // Show components
+      FormTitle: FormTitleComponent,
+      Image: ImageComponent,
+      Video: VideoComponent,
     };
 
     return components[componentType] || InputComponent;
@@ -92,6 +122,7 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
   };
 
   const isSelected = currentComponent?.id === component.id;
+
   const JustShowCompType = ['Divider', 'Paging', 'FormTitle'];
   const HasSettingTypeList = ['Radio', 'Select', 'Checkout'];
 
@@ -100,19 +131,23 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
   };
 
   return (
-    <div className="comp-item">
+    <div className={`${styles.compItem} ${isSelected ? styles.selected : ''}`}>
       {displaySection && (
-        <div className="comp-item-title">
-          <Title level={5} className="title-value">
+        <div className={styles.compItemTitle}>
+          <Title level={5} className={styles.titleValue}>
             {formConfig?.displayNumberSort && (
-              <span className={`number ${component.isRequired ? 'title-value-isRequired' : ''}`}>
-                {component.lineNumber}.
+              <span
+                className={`${styles.number} ${
+                  component.isRequired ? styles.titleValueIsRequired : ''
+                }`}
+              >
+                {component.lineNumber}
               </span>
             )}
-            <span className="title-value">
+            <span className={styles.titleValue}>
               {isDev && component.id === currentComponent?.id ? (
                 <Input.TextArea
-                  className="input-comp"
+                  className={styles.inputComp}
                   autoSize={{ minRows: 1, maxRows: 5 }}
                   maxLength={50}
                   value={component.title}
@@ -122,7 +157,9 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
                 />
               ) : (
                 <Text type="secondary">
-                  <div className="description input-comp">{component.title}</div>
+                  <div className={`${styles.description} ${styles.inputComp}`}>
+                    {component.title}
+                  </div>
                 </Text>
               )}
             </span>
@@ -131,9 +168,9 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
       )}
 
       {displaySection && formConfig?.displayDescription && (
-        <div className="comp-item-description">
+        <div className={styles.compItemDescription}>
           {component.id !== currentComponent?.id && isDev ? (
-            <div className="description">{component.description}</div>
+            <div className={styles.description}>{component.description}</div>
           ) : (
             <Input.TextArea
               autoSize={{ minRows: 1, maxRows: 5 }}
@@ -146,7 +183,7 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
         </div>
       )}
 
-      <div className="component">
+      <div className={styles.component}>
         <CurrentComponent
           key={type}
           isSelected={component.id === currentComponent?.id}
@@ -159,32 +196,30 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
       </div>
 
       {isSelected && !isIgnoreEditor() && (
-        <div className="active-comp-setting">
-          <div className="bottom-setting">
-            {HasSettingTypeList.includes(type) && (
-              <div className="data-list-setting">
-                <span className="add-item" onClick={() => handleAddItem('new')}>
-                  <Text type="warning">
-                    <CopyOutlined style={{ fontSize: '16px', color: '#646a73' }} />
-                    <span className="add-label">添加单项</span>
-                  </Text>
-                </span>
-                <span className="add-item" onClick={() => handleAddItem('other')}>
-                  <Text type="warning">
-                    <CopyOutlined style={{ fontSize: '16px', color: '#646a73' }} />
-                    <span className="add-label">添加其他</span>
-                  </Text>
-                </span>
-                <span className="add-item" onClick={() => setOpenBatchOperation(true)}>
-                  <Text type="warning">
-                    <CopyOutlined style={{ fontSize: '16px', color: '#646a73' }} />
-                    <span className="add-label">批量操作</span>
-                  </Text>
-                </span>
-              </div>
-            )}
+        <div className={styles.activeCompSetting}>
+          <div className={styles.bottomSetting}>
+            <div className={styles.dataListSetting}>
+              <span className={styles.addItem} onClick={() => handleAddItem('new')}>
+                <Text type="warning">
+                  <CopyOutlined style={{ fontSize: '16px', color: '#646a73' }} />
+                  <span className={styles.addLabel}>添加单项</span>
+                </Text>
+              </span>
+              <span className={styles.addItem} onClick={() => handleAddItem('other')}>
+                <Text type="warning">
+                  <CopyOutlined style={{ fontSize: '16px', color: '#646a73' }} />
+                  <span className={styles.addLabel}>添加其他</span>
+                </Text>
+              </span>
+              <span className={styles.addItem} onClick={() => setOpenBatchOperation(true)}>
+                <Text type="warning">
+                  <CopyOutlined style={{ fontSize: '16px', color: '#646a73' }} />
+                  <span className={styles.addLabel}>批量操作</span>
+                </Text>
+              </span>
+            </div>
 
-            <span className="setting-item">
+            <span className={styles.settingItem}>
               <Switch
                 checked={component.isRequired}
                 onChange={checked => handleChangeValue('isRequired', checked)}
@@ -197,22 +232,22 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
 
       {isSelected && (
         <>
-          <div className="active-drag handle">
+          <div className={styles.activeDrag + ' handle'}>
             <img src="/assets/form/drag.svg" alt="drag" />
           </div>
-          <div className="active-comp-setting-side-bar">
+          <div className={styles.activeCompSettingSideBar}>
             <Tooltip placement="left" title="复制">
-              <div className="control" onClick={e => handleCompControl('copy', component)}>
+              <div className={styles.control} onClick={e => handleCompControl('copy', component)}>
                 <CopyOutlined />
               </div>
             </Tooltip>
             <Tooltip placement="left" title="逻辑">
-              <div className="control" onClick={e => handleCompControl('logic', component)}>
+              <div className={styles.control} onClick={e => handleCompControl('logic', component)}>
                 <BranchesOutlined />
               </div>
             </Tooltip>
             <Tooltip placement="left" color="#f50" title="删除">
-              <div className="control" onClick={e => handleCompControl('delete', component)}>
+              <div className={styles.control} onClick={e => handleCompControl('delete', component)}>
                 <DeleteOutlined />
               </div>
             </Tooltip>

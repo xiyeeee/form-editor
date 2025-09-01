@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select as AntSelect } from 'antd';
+import { Select } from 'antd';
 import type { FormComponent } from '@/store/formSlice';
 
 interface SelectComponentProps {
@@ -11,20 +11,20 @@ interface SelectComponentProps {
   onChange?: (value: string) => void;
 }
 
-const SelectComponent: React.FC<SelectComponentProps> = ({ 
-  id, 
-  dataList = [], 
-  isRequired, 
-  value, 
-  isDev, 
-  onChange 
+const SelectComponent: React.FC<SelectComponentProps> = ({
+  id,
+  dataList = [],
+  isRequired,
+  value,
+  isDev,
+  onChange,
 }) => {
   const handleChange = (selectedValue: string) => {
     onChange?.(selectedValue);
   };
 
   return (
-    <AntSelect
+    <Select
       disabled={isDev}
       value={value}
       onChange={handleChange}
@@ -32,11 +32,11 @@ const SelectComponent: React.FC<SelectComponentProps> = ({
       style={{ width: '100%' }}
     >
       {dataList.map((item, index) => (
-        <AntSelect.Option key={item.id || index} value={item.value}>
+        <Select.Option key={item.id || index} value={item.value}>
           {item.label}
-        </AntSelect.Option>
+        </Select.Option>
       ))}
-    </AntSelect>
+    </Select>
   );
 };
 

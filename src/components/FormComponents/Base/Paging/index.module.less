@@ -1,0 +1,55 @@
+.borderRadius {
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+}
+
+.paging {
+  .pageNumber {
+    border: 1px solid #e0e0e0;
+    padding: 8px 18px;
+    border-radius: 5px;
+    color: #666666;
+  }
+}
+
+.pageTitle,
+.pageSubDescription {
+  padding: 8px 12px;
+  outline: none;
+  font-size: 16px;
+  color: #333333;
+  border: 1px solid transparent;
+  
+  &:hover,
+  &:active {
+    border: 1px solid #d9d9d9;
+  }
+
+  &:empty:before {
+    content: '÷“eu˜';
+    color: #b3b3b3;
+    font-weight: 200;
+  }
+
+  &:focus:before {
+    content: none;
+  }
+}
+
+.pageTitle {
+  font-weight: 500;
+  height: 43px;
+  line-height: 42px;
+  padding: 0px 12px;
+}
+
+.pageSubDescription {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #666666;
+  
+  &:empty:before {
+    content: '÷“euÏð';
+    color: #b3b3b3;
+  }
+}

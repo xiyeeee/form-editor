@@ -1,0 +1,153 @@
+.compItem {
+  position: relative;
+  padding: 16px 60px 24px;
+  border-radius: 6px;
+  background: #fff;
+  transition: all 0.3s ease;
+  font-size: 16px;
+}
+
+.compItemTitle {
+  margin-bottom: 12px;
+}
+
+.titleValue {
+  position: relative;
+  color: rgb(73, 96, 141);
+  font-weight: 400;
+}
+
+.number {
+  font-weight: 500;
+  color: #1890ff;
+  min-width: 24px;
+  text-align: center;
+}
+
+.titleValueIsRequired {
+  color: #ff4d4f;
+}
+
+.description {
+  padding: 6px 12px;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 14px;
+  outline: none;
+  border-radius: 6px;
+  overflow-wrap: break-word;
+  white-space: normal;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+.inputComp {
+  color: #49608d;
+  font-size: 16px;
+}
+
+.compItemDescription {
+  margin-bottom: 12px;
+}
+
+.component {
+  margin-bottom: 12px;
+}
+
+.activeCompSetting {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.bottomSetting {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dataListSetting {
+  display: flex;
+  gap: 16px;
+}
+
+.addItem {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #1890ff;
+  }
+}
+
+.addLabel {
+  font-size: 12px;
+}
+
+.settingItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  label {
+    font-size: 14px;
+    color: #666;
+  }
+}
+
+.activeDrag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  cursor: move;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+
+  img {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.activeCompSettingSideBar {
+  position: absolute;
+  top: 50%;
+  right: -40px;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: #1890ff;
+    border-color: #1890ff;
+    color: #fff;
+  }
+}
+
+.compItem {
+  &.selected {
+    border-color: #1890ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  }
+
+  &.selected .activeDrag {
+    opacity: 1;
+  }
+}

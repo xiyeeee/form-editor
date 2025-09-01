@@ -1,0 +1,25 @@
+.rate {
+  text-align: left;
+  margin-left: -10px;
+  
+  :global(.ant-rate-star-zero) {
+    color: rgba(0, 0, 0, 1) !important;
+    filter: grayscale(0);
+  }
+
+  :global(.ant-rate-star-first) {
+    color: rgba(0, 0, 0, 1);
+    filter: grayscale(0);
+  }
+
+  :global(.ant-rate-star-second) {
+    color: rgba(0, 0, 0, 1);
+    filter: grayscale(1);
+  }
+
+  :global(.ant-rate-star-full .ant-rate-star-second),
+  :global(.ant-rate-star-full .ant-rate-star-first) {
+    color: rgba(0, 0, 0, 1) !important;
+    filter: grayscale(0);
+  }
+}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Input as AntInput } from 'antd';
+import { Input } from 'antd';
 import type { FormComponent } from '@/store/formSlice';
 
 interface TextareaComponentProps {
@@ -10,19 +10,19 @@ interface TextareaComponentProps {
   onChange?: (value: string) => void;
 }
 
-const TextareaComponent: React.FC<TextareaComponentProps> = ({ 
-  id, 
-  placeholder, 
-  value, 
-  isDev, 
-  onChange 
+const TextareaComponent: React.FC<TextareaComponentProps> = ({
+  id,
+  placeholder,
+  value,
+  isDev,
+  onChange,
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange?.(e.target.value);
   };
 
   return (
-    <AntInput.TextArea
+    <Input.TextArea
       disabled={isDev}
       title={isDev ? '开发模式下禁用' : placeholder}
       className="item-comp"

@@ -21,6 +21,8 @@ export interface FormComponent {
 }
 
 export interface FormConfig {
+  /* 全局 表单按钮配置*/
+  displayFormBtn?: boolean;
   displayNumberSort?: boolean;
   displayDescription?: boolean;
   displayTitle?: boolean;
@@ -55,6 +57,7 @@ const formSlice = createSlice({
     initGlobalFormConfig: (state, action: PayloadAction<FormConfig>) => {
       state.globalFormConfig = { ...state.globalFormConfig, ...action.payload };
     },
+    /* 更新全局配置 , 左侧栏 */
     updateGlobalFormConfig: (state, action: PayloadAction<Partial<FormConfig>>) => {
       state.globalFormConfig = { ...state.globalFormConfig, ...action.payload };
     },
@@ -69,7 +72,10 @@ const formSlice = createSlice({
     addComponent: (state, action: PayloadAction<FormComponent>) => {
       state.components.push(action.payload);
     },
-    updateComponent: (state, action: PayloadAction<{ id: string; updates: Partial<FormComponent> }>) => {
+    updateComponent: (
+      state,
+      action: PayloadAction<{ id: string; updates: Partial<FormComponent> }>
+    ) => {
       const { id, updates } = action.payload;
       const index = state.components.findIndex(comp => comp.id === id);
       if (index !== -1) {

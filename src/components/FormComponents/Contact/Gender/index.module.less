@@ -1,0 +1,63 @@
+.groupItem {
+  :global {
+    .ant-checkbox-group-item {
+      position: relative;
+      min-height: 40px;
+      line-height: 40px;
+      width: 100%;
+
+      .delete {
+        display: none;
+      }
+
+      &:hover,
+      &:active,
+      &:focus {
+        .delete {
+          position: absolute;
+          display: block;
+          right: 0;
+          top: 0;
+          cursor: pointer;
+        }
+      }
+    }
+
+    .ant-checkbox {
+      position: absolute;
+      top: 12px;
+    }
+  }
+}
+
+.groupItemSelect {
+  // Additional styles for selected state
+}
+
+.listItem {
+  display: block;
+}
+
+.otherVal {
+  display: block;
+}
+
+.editorItem {
+  outline: none;
+  margin-left: 15px;
+
+  &:active,
+  &:focus {
+    border: 1px solid #e0e0e0;
+    padding: 0 12px 0 10px;
+    border-radius: 6px;
+  }
+}
+
+:global(.ant-checkbox-disabled + span) {
+  color: #000;
+}
+
+:global(.ant-checkbox .ant-checkbox-input) {
+  display: inline;
+}

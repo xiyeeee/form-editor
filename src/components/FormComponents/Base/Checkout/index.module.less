@@ -1,0 +1,65 @@
+.groupItem {
+  position: relative;
+
+  &.groupItemSelect {
+    /* Add any specific styles for selected state */
+  }
+}
+
+.checkboxItem {
+  position: relative;
+  min-height: 40px;
+  padding: 4px 12px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+
+  .delete {
+    display: none;
+  }
+
+  &:hover,
+  &:active,
+  &:focus {
+    background-color: #f5f5f5;
+    border-radius: 6px;
+    .delete {
+      display: block;
+    }
+  }
+}
+
+:global {
+  .ant-checkbox {
+    margin-right: 8px;
+  }
+
+  .ant-checkbox-disabled + span {
+    color: #000 !important;
+  }
+
+  .ant-checkbox .ant-checkbox-input {
+    display: inline !important;
+  }
+}
+
+.otherVal {
+  display: block;
+  margin-left: 24px;
+  margin-top: 4px;
+}
+
+.editorItem {
+  display: inline-block;
+  margin-left: 8px;
+}
+
+.itemComp {
+  margin-left: 8px;
+}
+
+.delete {
+  cursor: pointer;
+}
