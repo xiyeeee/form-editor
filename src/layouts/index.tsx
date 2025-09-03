@@ -8,9 +8,7 @@ export default function Layout() {
     <Provider store={store}>
       <div className={styles.navs}>
         <ul>
-          <li>
-            <Link to="/form-editor">Form Editor</Link>
-          </li>
+          <li></li>
         </ul>
         <Outlet />
       </div>

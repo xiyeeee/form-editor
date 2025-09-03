@@ -6,7 +6,7 @@
  * @LastEditTime: 2025-09-01 20:54:07
  */
 import React, { useState } from 'react';
-import { Button, Tooltip, Typography } from 'antd';
+import { Button, notification, Tooltip, Typography } from 'antd';
 import { useNavigate } from 'umi';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
@@ -113,7 +113,27 @@ const FormEditor: React.FC = () => {
     setPageCompList([...pageCompList, element]);
   };
   const handleCompControl = (type: string, component: any) => {
-    console.log('Component control:', type, component);
+    const index = _.findIndex(pageCompList, (item: any) => item.id === component.id);
+    if (index === -1) {
+      console.log('没有查询到组件！！！');
+      return;
+    }
+    if (type === 'copy') {
+      const newComp: any = {
+        ...component,
+        id: uuidv4(),
+      };
+      setPageCompList([...pageCompList, newComp]);
+    }
+    if (type === 'delete') {
+      setPageCompList(pageCompList.filter(item => item.id !== component.id));
+      notification.success({
+        message: component.name + '删除成功',
+      });
+    }
+
+    // initDataState();
+    // updateCompLineNumber();
   };
 
   const handleAddItem = (type: string) => {
@@ -215,6 +235,7 @@ const FormEditor: React.FC = () => {
                   <FormComponentWrapper
                     key={component.id}
                     component={component}
+                    selectedComp={getActiveComp()}
                     type={component.type}
                     lineNumber={String(index + 1)}
                     formConfig={globalFormConfig}

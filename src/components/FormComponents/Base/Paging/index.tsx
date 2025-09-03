@@ -1,65 +1,72 @@
-import React from 'react';
-import { Pagination } from 'antd';
+import React, { useState, useCallback } from 'react';
+import { Divider, Input } from 'antd';
+import { v4 as uuidv4 } from 'uuid';
 import styles from './index.module.less';
 
-interface PagingComponentProps {
-  isDev?: boolean;
-  pagingValue?: string;
-  pageSubTitle?: string;
-  pageSubDescription?: string;
-  onPageSubTitleChange?: (value: string) => void;
-  onPageSubDescriptionChange?: (value: string) => void;
+interface Props {
+  isDev: boolean;
+  pagingValue: string;
+  pageSubTitle: string;
+  pageSubDescription: string;
+  onDataChange?: (data: { pageSubTitle?: string; pageSubDescription?: string }) => void;
 }
 
-const PagingComponent: React.FC<PagingComponentProps> = ({
-  isDev = false,
-  pagingValue = '1',
-  pageSubTitle = '',
-  pageSubDescription = '',
-  onPageSubTitleChange,
-  onPageSubDescriptionChange
+const Paging: React.FC<Props> = ({
+  isDev,
+  pagingValue,
+  pageSubTitle,
+  pageSubDescription,
+  onDataChange,
 }) => {
-  const handleSubTitleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
-    const value = e.currentTarget.textContent || '';
-    if (onPageSubTitleChange) {
-      onPageSubTitleChange(value);
-    }
-  };
+  const [localTitle, setLocalTitle] = useState(pageSubTitle);
+  const [localDescription, setLocalDescription] = useState(pageSubDescription);
 
-  const handleSubDescriptionBlur = (e: React.FocusEvent<HTMLDivElement>) => {
-    const value = e.currentTarget.textContent || '';
-    if (onPageSubDescriptionChange) {
-      onPageSubDescriptionChange(value);
+  const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLocalTitle(value);
+    if (onDataChange) {
+      onDataChange({ pageSubTitle: value });
     }
-  };
+  }, [onDataChange]);
+
+  const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLocalDescription(value);
+    if (onDataChange) {
+      onDataChange({ pageSubDescription: value });
+    }
+  }, [onDataChange]);
 
   return (
-    <div>
-      <div className={styles.paging}>
+    <div className={styles.pagingContainer}>
+      <Divider className={styles.paging}>
         <span className={styles.pageNumber}>{pagingValue}</span>
-      </div>
+      </Divider>
+      
       {(isDev || pageSubTitle) && (
-        <div
+        <Input
           className={styles.pageTitle}
-          contentEditable={isDev}
-          suppressContentEditableWarning
-          onBlur={handleSubTitleBlur}
-        >
-          {pageSubTitle}
-        </div>
+          value={localTitle}
+          onChange={handleTitleChange}
+          placeholder="请输入分页标题"
+          variant="borderless"
+          disabled={!isDev}
+        />
       )}
+      
       {(isDev || pageSubDescription) && (
-        <div
+        <Input.TextArea
           className={styles.pageSubDescription}
-          contentEditable={isDev}
-          suppressContentEditableWarning
-          onBlur={handleSubDescriptionBlur}
-        >
-          {pageSubDescription}
-        </div>
+          value={localDescription}
+          onChange={handleDescriptionChange}
+          placeholder="请输入分页描述"
+          variant="borderless"
+          autoSize={{ minRows: 2, maxRows: 4 }}
+          disabled={!isDev}
+        />
       )}
     </div>
   );
 };
 
-export default PagingComponent;
+export default Paging;

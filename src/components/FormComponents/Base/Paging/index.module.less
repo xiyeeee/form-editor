@@ -1,55 +1,115 @@
-.borderRadius {
-  border-radius: 6px;
-  border: 1px solid #d9d9d9;
+.pagingContainer {
+  padding: 16px;
+  background: #fff;
+  border-radius: 8px;
+  margin-bottom: 16px;
 }
 
 .paging {
-  .pageNumber {
-    border: 1px solid #e0e0e0;
-    padding: 8px 18px;
-    border-radius: 5px;
-    color: #666666;
+  margin: 16px 0;
+  
+  :global {
+    .ant-divider-with-text {
+      color: #ccc;
+      font-weight: 400 !important;
+      font-size: 14px !important;
+    }
   }
 }
 
-.pageTitle,
-.pageSubDescription {
-  padding: 8px 12px;
-  outline: none;
-  font-size: 16px;
-  color: #333333;
-  border: 1px solid transparent;
-  
-  &:hover,
-  &:active {
-    border: 1px solid #d9d9d9;
-  }
-
-  &:empty:before {
-    content: '÷“eu˜';
-    color: #b3b3b3;
-    font-weight: 200;
-  }
-
-  &:focus:before {
-    content: none;
-  }
+.pageNumber {
+  border: 1px solid #e0e0e0;
+  padding: 8px 18px;
+  border-radius: 5px;
+  color: #666666;
+  background: #fff;
+  font-weight: 500;
 }
 
 .pageTitle {
   font-weight: 500;
-  height: 43px;
-  line-height: 42px;
-  padding: 0px 12px;
+  font-size: 16px;
+  color: #333333;
+  margin-bottom: 8px;
+  
+  :global {
+    .ant-input-borderless {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      padding: 8px 12px;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        border-color: #d9d9d9;
+        background: #fafafa;
+      }
+      
+      &:focus {
+        border-color: #1890ff;
+        background: transparent;
+        box-shadow: none;
+      }
+      
+      &::placeholder {
+        color: #b3b3b3;
+        font-weight: 200;
+      }
+      
+      &:disabled {
+        color: #333333;
+        background: transparent;
+        cursor: default;
+        
+        &:hover {
+          border-color: transparent;
+          background: transparent;
+        }
+      }
+    }
+  }
 }
 
 .pageSubDescription {
-  margin-top: 10px;
   font-size: 14px;
   color: #666666;
+  margin-top: 8px;
   
-  &:empty:before {
-    content: '÷“euÏð';
-    color: #b3b3b3;
+  :global {
+    .ant-input-borderless {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      padding: 8px 12px;
+      transition: all 0.3s ease;
+      resize: none;
+      
+      &:hover {
+        border-color: #d9d9d9;
+        background: #fafafa;
+      }
+      
+      &:focus {
+        border-color: #1890ff;
+        background: transparent;
+        box-shadow: none;
+      }
+      
+      &::placeholder {
+        color: #b3b3b3;
+        font-weight: 200;
+      }
+      
+      &:disabled {
+        color: #666666;
+        background: transparent;
+        cursor: default;
+        
+        &:hover {
+          border-color: transparent;
+          background: transparent;
+        }
+      }
+    }
   }
 }

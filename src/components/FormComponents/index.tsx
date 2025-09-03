@@ -5,7 +5,7 @@
  * @LastEditors: Xiyeeee
  * @LastEditTime: 2025-09-01 21:15:27
  */
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Typography, Input, Switch, Tooltip, message } from 'antd';
 import { CopyOutlined, BranchesOutlined, DeleteOutlined } from '@ant-design/icons';
 import { v4 as uuidv4 } from 'uuid';
@@ -20,6 +20,15 @@ import RadioComponent from './Base/Radio';
 import SelectComponent from './Base/Select';
 import TextareaComponent from './Base/Textarea';
 import CheckoutComponent from './Base/Checkout';
+import SwitchComponent from './Base/Switch';
+import RateComponent from './Base/Rate';
+import SelectRateComponent from './Base/SelectRate';
+import TimeComponent from './Base/Time';
+import TimeRangeComponent from './Base/TimeRange';
+import DateComponent from './Base/Date';
+import DateRangeComponent from './Base/DateRange';
+import DividerComponent from './Base/Divider';
+import PagingComponent from './Base/Paging';
 
 import NameComponent from './Contact/Name';
 import PhoneComponent from './Contact/Phone';
@@ -37,6 +46,7 @@ import VideoComponent from './Show/Video';
 const { Title, Text } = Typography;
 
 interface FormComponentWrapperProps {
+  selectedComp: FormComponent;
   component: FormComponent;
   type: string;
   lineNumber?: string;
@@ -50,8 +60,9 @@ interface FormComponentWrapperProps {
 
 const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
   component,
+  selectedComp,
   type,
-  lineNumber,
+  // lineNumber,
   formConfig,
   isDev,
   renderType,
@@ -61,7 +72,7 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
 }) => {
   const dispatch = useDispatch();
   const { currentComponent } = useSelector((state: RootState) => state.form);
-
+  const [isSelected, setIsSelected] = useState<Boolean>(false);
   const [openBatchOperation, setOpenBatchOperation] = useState(false);
 
   const getComponent = useCallback((componentType: string) => {
@@ -72,7 +83,15 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
       Select: SelectComponent,
       Textarea: TextareaComponent,
       Checkout: CheckoutComponent,
-
+      Switch: SwitchComponent,
+      Rate: RateComponent,
+      SelectRate: SelectRateComponent,
+      Time: TimeComponent,
+      TimeRange: TimeRangeComponent,
+      Date: DateComponent,
+      DateRange: DateRangeComponent,
+      Divider: DividerComponent,
+      Paging: PagingComponent,
       // Contact components
       Name: NameComponent,
       Phone: PhoneComponent,
@@ -93,6 +112,9 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
   }, []);
 
   const CurrentComponent = getComponent(type);
+  useEffect(() => {
+    setIsSelected(component.id === selectedComp?.id);
+  }, [selectedComp, component]);
 
   const displaySection = !['Divider', 'Paging', 'FormTitle'].includes(type);
 
@@ -120,8 +142,6 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
       handleChangeValue('dataList', dataList);
     }
   };
-
-  const isSelected = currentComponent?.id === component.id;
 
   const JustShowCompType = ['Divider', 'Paging', 'FormTitle'];
   const HasSettingTypeList = ['Radio', 'Select', 'Checkout'];
