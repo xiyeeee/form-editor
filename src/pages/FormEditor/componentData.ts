@@ -66,6 +66,8 @@ export interface CompItemType {
 enum CompListType {
   basic = 'Basic Component',
   advanced = 'Advanced Component',
+  rate = 'Rate Component',
+  time = 'Time Component',
   personal = 'Personal Component',
   form = 'Form Component',
   layout = 'Layout Component',
@@ -291,13 +293,13 @@ export const CompListData: CompCategoryType[] = [
   {
     name: '评分和满意度',
     label: '评分和满意度',
-    type: CompListType.basic,
+    type: CompListType.rate,
     children: [...RateComponentList],
   },
   {
     name: '日期和时间',
     label: '日期和时间',
-    type: CompListType.basic,
+    type: CompListType.time,
     children: [...TimeComponentList],
   },
   {

@@ -62,7 +62,6 @@ const FormTitle: React.FC<FormTitleProps> = ({
 
   useEffect(() => {
     if (isDev) {
-      console.log('FormTitle mounted');
     }
   }, [isDev]);
 

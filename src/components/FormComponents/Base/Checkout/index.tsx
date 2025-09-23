@@ -38,8 +38,7 @@ const Checkout: React.FC<Props> = ({
 
   const deleteSubItem = useCallback(
     (index: number) => {
-      const newList = [...dataList];
-      newList.splice(index, 1);
+      const newList = dataList.filter((_, i) => i !== index);
       if (onDataChange) {
         onDataChange(newList);
       }
@@ -60,13 +59,9 @@ const Checkout: React.FC<Props> = ({
         return;
       }
 
-      const newList = [...dataList];
-      if (isOtherBool) {
-        newList[index].label = value;
-      } else {
-        newList[index].label = value;
-        newList[index].value = value;
-      }
+      const newList = dataList.map((item, i) =>
+        i === index ? { ...item, label: value, value: isOtherBool ? item.value : value } : item
+      );
 
       if (onDataChange) {
         onDataChange(newList);
@@ -96,18 +91,32 @@ const Checkout: React.FC<Props> = ({
               }
             }}
           >
-            <Input className={styles.editorItem} value={option.label} disabled={isPreviewRender} />
+            <Input
+              className={styles.editorItem}
+              value={option.label}
+              disabled={isPreviewRender}
+              onChange={e => {
+                if (!isPreviewRender && isDev) {
+                  const newList = dataList.map((item, i) =>
+                    i === index ? { ...item, label: e.target.value, value: e.target.value } : item
+                  );
+                  if (onDataChange) {
+                    onDataChange(newList);
+                  }
+                }
+              }}
+            />
           </Checkbox>
           {option.subType === 'other' && (
             <span className={styles.otherVal}>
               <Input
-                disabled={isDev}
                 className={styles.itemComp}
                 value={option.value}
                 placeholder="待填表者更新"
                 onChange={e => {
-                  const newList = [...dataList];
-                  newList[index].value = e.target.value;
+                  const newList = dataList.map((item, i) =>
+                    i === index ? { ...item, value: e.target.value } : item
+                  );
                   if (onDataChange) {
                     onDataChange(newList);
                   }

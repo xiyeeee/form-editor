@@ -5,7 +5,7 @@
  * @LastEditors: Xiyeeee
  * @LastEditTime: 2025-09-01 20:54:07
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, notification, Tooltip, Typography } from 'antd';
 import { useNavigate } from 'umi';
 import { useSelector } from 'react-redux';
@@ -23,6 +23,8 @@ import { getDefaultConfig } from './componentConfigData';
 const { Title, Text } = Typography;
 const compList = [...CompListData]; // 组件列表
 import { v4 as uuidv4 } from 'uuid';
+import { FormComponent, setCurrentComponent, updateComponent } from '@/store/formSlice';
+import { useDispatch } from 'react-redux';
 interface ActiveCompType {
   type: 'component' | 'header';
   id: string;
@@ -47,14 +49,17 @@ interface HeaderType {
   titleDescriptionPosition: 'left' | 'right' | 'center';
 }
 const FormEditor: React.FC = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { components, globalFormConfig } = useSelector((state: RootState) => state.form);
+  const { globalFormConfig, currentComponent } = useSelector((state: RootState) => state.form);
   // 当前选中的分类
   const [activeType, setActiveType] = useState('basic');
   const [selectForm, setSelectForm] = useState({});
-  const [pageCompList, setPageCompList] = useState<any[]>([]);
-  /* 选中组件 */
-  const [activeComp, setActiveComp] = useState<ActiveCompType>({ type: 'component', id: '' });
+  const [activeCompId, setActiveCompId] = useState('');
+  const [pageCompList, setPageCompList] = useState<FormComponent[]>([]);
+
+  // 移除 useEffect，改为手动同步更新
+
   /**
    * 编辑器编辑内容
    * 1. pageHeader // 底部配置
@@ -83,14 +88,14 @@ const FormEditor: React.FC = () => {
   /* 激活 */
   const getActiveComp = () => {
     // 组件列表
-    const item = _.find(pageCompList, (item: any) => item.id === activeComp.id);
+    const item = _.find(pageCompList, (item: any) => item.id === activeCompId);
     if (item) {
       return item;
     }
-    if (activeComp.id === pageFooter.id) {
+    if (activeCompId === pageFooter.id) {
       return pageFooter;
     }
-    if (activeComp.id === pageHeader.id) {
+    if (activeCompId === pageHeader.id) {
       return pageHeader;
     }
   };
@@ -107,15 +112,19 @@ const FormEditor: React.FC = () => {
     };
     return { ...item };
   };
+
   const handleCreateFormComponents = (component: CompItemType) => {
-    console.log(component);
     const element = createByClickOrDrag(component);
+    /* 新增 */
     setPageCompList([...pageCompList, element]);
+  };
+  const handleSelectComponent = (component: any) => {
+    setActiveCompId(component.id);
+    dispatch(setCurrentComponent({ ...component }));
   };
   const handleCompControl = (type: string, component: any) => {
     const index = _.findIndex(pageCompList, (item: any) => item.id === component.id);
     if (index === -1) {
-      console.log('没有查询到组件！！！');
       return;
     }
     if (type === 'copy') {
@@ -136,8 +145,40 @@ const FormEditor: React.FC = () => {
     // updateCompLineNumber();
   };
 
-  const handleAddItem = (type: string) => {
-    console.log('Add item:', type);
+  const handleComponentChange = (updatedComponent: FormComponent) => {
+    console.log(updatedComponent, 'updatedComponent');
+    setPageCompList(prevList =>
+      prevList.map(item => (item.id === updatedComponent.id ? updatedComponent : item))
+    );
+  };
+
+  const handleAddItem = (type: string, id: string) => {
+    const isNewBool = type === 'new';
+    const isOtherBool = type === 'other';
+    const newDataItem = isNewBool
+      ? {
+          label: '选项',
+          value: '选项',
+        }
+      : {
+          subType: 'other',
+          label: '其他',
+          value: '',
+        };
+
+    if (['new', 'other'].includes(type)) {
+      const updatedList = pageCompList.map(item => {
+        if (item.id === id) {
+          const updatedItem = {
+            ...item,
+            dataList: [...(item.dataList || []), newDataItem],
+          };
+          return updatedItem;
+        }
+        return item;
+      });
+      setPageCompList(updatedList);
+    }
   };
 
   const callback = () => {
@@ -201,6 +242,7 @@ const FormEditor: React.FC = () => {
               <div className={classNames(styles.compList)}>
                 {componentsItem.children.map(component => (
                   <div
+                    key={`${componentsItem.type}-${component.type}`}
                     className={classNames(styles.item)}
                     onClick={() => {
                       handleCreateFormComponents(component);
@@ -225,11 +267,10 @@ const FormEditor: React.FC = () => {
                 <div
                   key={component.id}
                   className={classNames(styles.componentItem, {
-                    [styles.activeComponentItem]: activeComp.id === component.id,
+                    [styles.activeComponentItem]: activeCompId === component.id,
                   })}
                   onClick={() => {
-                    setActiveComp({ type: 'component', id: component.id });
-                    setSelectForm(component);
+                    handleSelectComponent(component);
                   }}
                 >
                   <FormComponentWrapper
@@ -242,6 +283,7 @@ const FormEditor: React.FC = () => {
                     isDev={true}
                     onCompControl={handleCompControl}
                     onAddItem={handleAddItem}
+                    onDataChange={handleComponentChange}
                   />
                 </div>
               ))
@@ -250,7 +292,7 @@ const FormEditor: React.FC = () => {
         </div>
         <div className={styles.rightFormConfig}>
           <FormSetting
-            currentCompId={activeComp.id}
+            currentCompId={activeCompId}
             selectForm={selectForm}
             selectComp={getActiveComp()}
           ></FormSetting>

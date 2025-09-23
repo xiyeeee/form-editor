@@ -33,7 +33,6 @@ export interface FormConfig {
 export interface FormState {
   globalFormConfig: FormConfig;
   currentComponent: FormComponent | null;
-  components: FormComponent[];
   currentCompKey: string;
 }
 
@@ -46,7 +45,6 @@ const initialState: FormState = {
     displaySerialNumber: true,
   },
   currentComponent: null,
-  components: [],
   currentCompKey: '',
 };
 
@@ -61,35 +59,21 @@ const formSlice = createSlice({
     updateGlobalFormConfig: (state, action: PayloadAction<Partial<FormConfig>>) => {
       state.globalFormConfig = { ...state.globalFormConfig, ...action.payload };
     },
-    setCurrentComponent: (state, action: PayloadAction<FormComponent | null>) => {
+    /* 初始化 */
+    initCurrentComponent: (state, action: PayloadAction<FormComponent>) => {
       state.currentComponent = action.payload;
     },
-    updateCurrentComponent: (state, action: PayloadAction<Partial<FormComponent>>) => {
-      if (state.currentComponent) {
-        state.currentComponent = { ...state.currentComponent, ...action.payload };
-      }
+    /* 选中 */
+    setCurrentComponent: (state, action: PayloadAction<FormComponent>) => {
+      state.currentComponent = action.payload;
     },
-    addComponent: (state, action: PayloadAction<FormComponent>) => {
-      state.components.push(action.payload);
+    /* 更新 */
+    updateComponent: (state, action: PayloadAction<Partial<FormComponent>>) => {
+      state.currentComponent = { ...state.currentComponent, ...action.payload } as FormComponent;
     },
-    updateComponent: (
-      state,
-      action: PayloadAction<{ id: string; updates: Partial<FormComponent> }>
-    ) => {
-      const { id, updates } = action.payload;
-      const index = state.components.findIndex(comp => comp.id === id);
-      if (index !== -1) {
-        state.components[index] = { ...state.components[index], ...updates };
-      }
-    },
-    removeComponent: (state, action: PayloadAction<string>) => {
-      state.components = state.components.filter(comp => comp.id !== action.payload);
-    },
+    /* key */
     setCurrentCompKey: (state, action: PayloadAction<string>) => {
       state.currentCompKey = action.payload;
-    },
-    setComponents: (state, action: PayloadAction<FormComponent[]>) => {
-      state.components = action.payload;
     },
   },
 });
@@ -98,12 +82,9 @@ export const {
   initGlobalFormConfig,
   updateGlobalFormConfig,
   setCurrentComponent,
-  updateCurrentComponent,
-  addComponent,
   updateComponent,
-  removeComponent,
   setCurrentCompKey,
-  setComponents,
+  initCurrentComponent,
 } = formSlice.actions;
 
 export default formSlice.reducer;

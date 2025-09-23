@@ -6,8 +6,15 @@
  * @LastEditTime: 2025-09-01 21:15:27
  */
 import React, { useState, useCallback, useEffect } from 'react';
-import { Typography, Input, Switch, Tooltip, message } from 'antd';
-import { CopyOutlined, BranchesOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Typography, Input, Switch, Tooltip, message, Flex } from 'antd';
+import {
+  CopyOutlined,
+  BranchesOutlined,
+  DeleteOutlined,
+  HolderOutlined,
+  PlusCircleOutlined,
+  DiffOutlined,
+} from '@ant-design/icons';
 import { v4 as uuidv4 } from 'uuid';
 import type { FormComponent } from '@/store/formSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -21,6 +28,7 @@ import SelectComponent from './Base/Select';
 import TextareaComponent from './Base/Textarea';
 import CheckoutComponent from './Base/Checkout';
 import SwitchComponent from './Base/Switch';
+import BatchOptionModal from './components/BatchOptionModal';
 import RateComponent from './Base/Rate';
 import SelectRateComponent from './Base/SelectRate';
 import TimeComponent from './Base/Time';
@@ -55,7 +63,8 @@ interface FormComponentWrapperProps {
   renderType?: 'preview';
   previewType?: 'Phone' | 'PC';
   onCompControl?: (type: string, component: FormComponent) => void;
-  onAddItem?: (type: string) => void;
+  onAddItem?: (type: string, id: string) => void;
+  onDataChange?: (updatedComponent: FormComponent) => void;
 }
 
 const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
@@ -69,6 +78,7 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
   previewType,
   onCompControl,
   onAddItem,
+  onDataChange,
 }) => {
   const dispatch = useDispatch();
   const { currentComponent } = useSelector((state: RootState) => state.form);
@@ -111,7 +121,7 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
     return components[componentType] || InputComponent;
   }, []);
 
-  const CurrentComponent = getComponent(type);
+  const Component = getComponent(type);
   useEffect(() => {
     setIsSelected(component.id === selectedComp?.id);
   }, [selectedComp, component]);
@@ -119,21 +129,26 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
   const displaySection = !['Divider', 'Paging', 'FormTitle'].includes(type);
 
   const handleChangeValue = (field: string, value: any) => {
-    dispatch(
-      updateComponent({
-        id: component.id,
-        updates: { [field]: value },
-      })
-    );
+    console.log(field, value, 'field');
+    // 创建更新后的组件
+    const updatedComponent = { ...component, [field]: value };
+    // 更新 Redux 状态
+    dispatch(updateComponent({ [field]: value }));
     dispatch(setCurrentCompKey(uuidv4()));
+
+    // 通知父组件更新 pageCompList
+    if (onDataChange) {
+      console.log(updatedComponent, 'updatedComponent');
+      onDataChange(updatedComponent);
+    }
   };
 
   const handleCompControl = (type: string, component: FormComponent) => {
     onCompControl?.(type, component);
   };
 
-  const handleAddItem = (type: string) => {
-    onAddItem?.(type);
+  const handleAddItem = (type: string, id: string) => {
+    onAddItem?.(type, id);
   };
 
   const handleBatchOperation = (isOk: boolean, dataList: any[]) => {
@@ -143,7 +158,7 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
     }
   };
 
-  const JustShowCompType = ['Divider', 'Paging', 'FormTitle'];
+  const JustShowCompType = ['Divider', 'Paging', 'FormTitle', 'Button'];
   const HasSettingTypeList = ['Radio', 'Select', 'Checkout'];
 
   const isIgnoreEditor = () => {
@@ -204,7 +219,8 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
       )}
 
       <div className={styles.component}>
-        <CurrentComponent
+        {/* 原子组件 */}
+        <Component
           key={type}
           isSelected={component.id === currentComponent?.id}
           isPreviewRender={renderType === 'preview'}
@@ -212,32 +228,37 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
           previewType={previewType}
           {...component}
           onChange={(value: any) => handleChangeValue('dataValue', value)}
+          onDataChange={(newDataList: any[]) => {
+            handleChangeValue('dataList', newDataList);
+          }}
         />
       </div>
 
       {isSelected && !isIgnoreEditor() && (
         <div className={styles.activeCompSetting}>
           <div className={styles.bottomSetting}>
-            <div className={styles.dataListSetting}>
-              <span className={styles.addItem} onClick={() => handleAddItem('new')}>
-                <Text type="warning">
-                  <CopyOutlined style={{ fontSize: '16px', color: '#646a73' }} />
+            {HasSettingTypeList.includes(component.type) && (
+              <div className={styles.dataListSetting}>
+                <span
+                  className={styles.addItem}
+                  onClick={() => handleAddItem('new', selectedComp?.id)}
+                >
+                  <PlusCircleOutlined style={{ fontSize: 12, color: ' #49608d' }} />
                   <span className={styles.addLabel}>添加单项</span>
-                </Text>
-              </span>
-              <span className={styles.addItem} onClick={() => handleAddItem('other')}>
-                <Text type="warning">
-                  <CopyOutlined style={{ fontSize: '16px', color: '#646a73' }} />
+                </span>
+                <span
+                  className={styles.addItem}
+                  onClick={() => handleAddItem('other', selectedComp?.id)}
+                >
+                  <PlusCircleOutlined style={{ fontSize: 12, color: ' #49608d' }} />
                   <span className={styles.addLabel}>添加其他</span>
-                </Text>
-              </span>
-              <span className={styles.addItem} onClick={() => setOpenBatchOperation(true)}>
-                <Text type="warning">
-                  <CopyOutlined style={{ fontSize: '16px', color: '#646a73' }} />
+                </span>
+                <span className={styles.addItem} onClick={() => setOpenBatchOperation(true)}>
+                  <DiffOutlined style={{ fontSize: 12, color: ' #49608d' }} />
                   <span className={styles.addLabel}>批量操作</span>
-                </Text>
-              </span>
-            </div>
+                </span>
+              </div>
+            )}
 
             <span className={styles.settingItem}>
               <Switch
@@ -252,8 +273,8 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
 
       {isSelected && (
         <>
-          <div className={styles.activeDrag + ' handle'}>
-            <img src="/assets/form/drag.svg" alt="drag" />
+          <div className={styles.activeDrag}>
+            <HolderOutlined />
           </div>
           <div className={styles.activeCompSettingSideBar}>
             <Tooltip placement="left" title="复制">
@@ -274,6 +295,12 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
           </div>
         </>
       )}
+
+      <BatchOptionModal
+        open={openBatchOperation}
+        dataList={component.dataList || []}
+        onBatchOperation={handleBatchOperation}
+      />
     </div>
   );
 };
