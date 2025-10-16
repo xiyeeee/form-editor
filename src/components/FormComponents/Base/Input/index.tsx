@@ -23,7 +23,8 @@ const InputComponent: React.FC<InputComponentProps> = ({
 
   return (
     <Input
-      title={placeholder}
+      disabled={isDev}
+      title={isDev ? '开发模式下禁用' : placeholder}
       className="item-comp"
       value={value || ''}
       onChange={handleChange}

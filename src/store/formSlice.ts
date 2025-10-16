@@ -18,6 +18,51 @@ export interface FormComponent {
   formValidationFormat?: string;
   formValidationFormatRegex?: string;
   lineNumber?: string;
+  // Layout and positioning
+  position?: 'left' | 'right' | 'center';
+  layoutType?: 'horizontal' | 'vertical';
+  // Divider specific
+  dividerValue?: string;
+  // Paging specific
+  pagingValue?: string;
+  pageSubTitle?: string;
+  pageSubDescription?: string;
+  // Button specific
+  buttonText?: string;
+  size?: 'large' | 'middle' | 'small';
+  buttonIconShowBool?: boolean;
+  // Rate specific
+  rateCount?: number;
+  rateCharacter?: string;
+  rateColor?: string;
+  rateAllowHalf?: boolean;
+  // NPS specific
+  startValue?: number;
+  startValueList?: number[];
+  // Address specific
+  address?: string[];
+  address_detail?: string;
+  address_default?: string[];
+  address_detail_default?: string;
+  address_placeholder?: string;
+  address_detail_placeholder?: string;
+  // Title specific
+  titleValue?: string;
+  titleSize?: string;
+  titleDescription?: string;
+  titleImageUrl?: string;
+  titleDescriptionShow?: boolean;
+  titleImageShow?: boolean;
+  titleDescriptionPosition?: string;
+  // Validation
+  minValue?: number;
+  maxValue?: number;
+  // Sign specific
+  sign_create_type?: string;
+  // Watermark specific
+  waterMarkText?: string;
+  // Layout component flag
+  isLayoutComp?: boolean;
 }
 
 export interface FormConfig {
@@ -28,6 +73,7 @@ export interface FormConfig {
   displayTitle?: boolean;
   displayWaterMark?: boolean;
   displaySerialNumber?: boolean;
+  dividerBorderType?: boolean;
 }
 
 export interface FormState {

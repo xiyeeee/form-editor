@@ -29,7 +29,7 @@ const Paging: React.FC<Props> = ({
     }
   }, [onDataChange]);
 
-  const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setLocalDescription(value);
     if (onDataChange) {

@@ -86,7 +86,7 @@ const FormEditor: React.FC = () => {
     buttonIconShowBool: true,
   });
   /* 激活 */
-  const getActiveComp = () => {
+  const getActiveComp = (): FormComponent | FooterType | HeaderType | undefined => {
     // 组件列表
     const item = _.find(pageCompList, (item: any) => item.id === activeCompId);
     if (item) {
@@ -98,6 +98,7 @@ const FormEditor: React.FC = () => {
     if (activeCompId === pageHeader.id) {
       return pageHeader;
     }
+    return undefined;
   };
   /*  生成组件 , 通过全局状态管理 */
   const createByClickOrDrag = (element: any) => {
@@ -276,7 +277,7 @@ const FormEditor: React.FC = () => {
                   <FormComponentWrapper
                     key={component.id}
                     component={component}
-                    selectedComp={getActiveComp()}
+                    selectedComp={getActiveComp() || null}
                     type={component.type}
                     lineNumber={String(index + 1)}
                     formConfig={globalFormConfig}

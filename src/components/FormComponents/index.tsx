@@ -37,7 +37,7 @@ import DateComponent from './Base/Date';
 import DateRangeComponent from './Base/DateRange';
 import DividerComponent from './Base/Divider';
 import PagingComponent from './Base/Paging';
-
+import NPSComponent from './Base/NPS';
 import NameComponent from './Contact/Name';
 import PhoneComponent from './Contact/Phone';
 import EmailComponent from './Contact/Email';
@@ -54,7 +54,7 @@ import VideoComponent from './Show/Video';
 const { Title, Text } = Typography;
 
 interface FormComponentWrapperProps {
-  selectedComp: FormComponent;
+  selectedComp?: FormComponent | any;
   component: FormComponent;
   type: string;
   lineNumber?: string;
@@ -102,6 +102,7 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
       DateRange: DateRangeComponent,
       Divider: DividerComponent,
       Paging: PagingComponent,
+      NPS: NPSComponent,
       // Contact components
       Name: NameComponent,
       Phone: PhoneComponent,

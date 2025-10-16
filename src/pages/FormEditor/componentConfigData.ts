@@ -3,7 +3,19 @@
 import { CompType } from './componentData'; // 枚举组件对应
 
 type ClassifyList = 'personal';
-
+export const hasOwnPropertyFunction = (object: Object, key: string) => {
+  return object && Object.prototype.hasOwnProperty.call(object, key);
+};
+export const verifyRegularityCompList = () => {
+  return [
+    CompType.input,
+    CompType.textarea,
+    CompType.url,
+    CompType.email,
+    CompType.phone,
+    CompType.idCard,
+  ];
+};
 /* 中间动态表单映射配置 */
 interface CompConfig {
   name: string;
@@ -122,7 +134,7 @@ export const isRangePlaceholderType: CompType[] = [CompType.dateRange, CompType.
 export const isNumberType: CompType[] = [CompType.number];
 export const isButton: CompType[] = [CompType.button];
 export const isRate: CompType[] = [CompType.rate];
-export const isNPS: CompType[] = [CompType.nps, CompType.selectRate];
+export const isNPS: CompType[] = [CompType.nps];
 export const isAddress: CompType[] = [CompType.address];
 export const isSign: CompType[] = [CompType.electronicSignature];
 /* 表单通用配置 */

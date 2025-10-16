@@ -1,0 +1,42 @@
+.npsList {
+  display: flex;
+  flex-basis: content;
+  flex-wrap: wrap;
+}
+
+.npsItem {
+  display: inline-flex;
+  width: 32px;
+  height: 30px;
+  font-size: 22px;
+  line-height: 30px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  margin-right: 4px;
+}
+
+.item {
+  color: #fff;
+  background: #dee0e3;
+  border-radius: 6px;
+  width: 30px;
+  text-align: center;
+  padding: 0;
+  height: 30px;
+  cursor: pointer;
+  display: block;
+  line-height: 30px;
+
+  &:hover:not(.isDev),
+  &.hoverChildrenIndex {
+    background: rgba(22, 119, 255, 0.66);
+  }
+
+  &.active:not(.isDev) {
+    background: #1677ff;
+  }
+}
+
+.isDev {
+  cursor: default;
+}

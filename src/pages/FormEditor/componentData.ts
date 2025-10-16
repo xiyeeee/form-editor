@@ -56,6 +56,12 @@ export enum CompType {
   video = 'Video', // 视频
   title = 'Title', // 表单标题
 }
+export const JustShowCompType: string[] = [
+  CompType.formTitle,
+  CompType.divider,
+  CompType.paging,
+  CompType.button,
+];
 // 组件元素类型
 export interface CompItemType {
   name: string;
