@@ -56,9 +56,10 @@ interface FormSettingProps {
   selectComp?: any;
   selectForm?: any;
   currentCompId?: string;
+  onDataChange?: (updatedComponent: any) => void;
 }
 
-const FormSetting: React.FC<FormSettingProps> = ({ selectComp, selectForm, currentCompId }) => {
+const FormSetting: React.FC<FormSettingProps> = ({ selectComp, selectForm, currentCompId, onDataChange }) => {
   const currentComponent = useSelector((state: RootState) => state.form.currentComponent);
   const globalFormConfig = useSelector((state: RootState) => state.form.globalFormConfig);
 
@@ -161,7 +162,7 @@ const FormSetting: React.FC<FormSettingProps> = ({ selectComp, selectForm, curre
                 <div className={styles.categoryName}>表单验证</div>
                 <div className={styles.content}>
                   {showParams('maxValue') && <NumberConfig comp={actualSelectComp} />}
-                  {showParams('isRequired') && <Required comp={actualSelectComp} />}
+                  {showParams('isRequired') && <Required comp={actualSelectComp} onDataChange={onDataChange} />}
                   {showRegParams() && <ValidationSystem comp={actualSelectComp} />}
                   {showParams('isCustomErrorMessage') && (
                     <ValidationCustom comp={actualSelectComp} />

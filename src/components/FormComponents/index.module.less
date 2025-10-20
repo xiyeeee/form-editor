@@ -18,14 +18,22 @@
 }
 
 .number {
-  font-weight: 500;
-  color: #1890ff;
-  min-width: 24px;
-  text-align: center;
+  color: #49608d;
+  position: absolute;
+  left: -50px;
+  top: 6px;
 }
-
-.titleValueIsRequired {
-  color: #ff4d4f;
+.titleValueIsRequired::before {
+  color: red;
+  font-size: 12px;
+  position: absolute;
+  top: 4px;
+  left: -9px;
+  font-family: SimSun, sans-serif;
+  line-height: 1;
+  display: inline-block;
+  margin-inline-end: 4px;
+  content: '*';
 }
 
 .description {

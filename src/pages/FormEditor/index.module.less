@@ -10,6 +10,8 @@
   background: #fafafa;
   max-height: calc(100vh - 120px);
   overflow-y: auto;
+  overflow-x: hidden; /* 防止横向滚动影响拖拽 */
+  overscroll-behavior: contain; /* 阻止滚动链到外层 */
 }
 .compItemTitle {
   min-height: 36px;
@@ -34,8 +36,14 @@
     font-size: 15px;
     font-weight: 400;
     background: #fff;
+    user-select: none; /* 避免拖拽时选中文本 */
+    -webkit-user-drag: none; /* 避免原生拖拽图片 */
+    cursor: grab;
     &:hover {
       border-color: royalblue;
+    }
+    &:active {
+      cursor: grabbing;
     }
     .icon {
       width: 20px;
@@ -101,14 +109,15 @@
 .component {
   margin-bottom: 16px;
 }
-.componentItem {
-  margin-bottom: 16px;
-}
+
 .activeComponentItem {
   background: #f0f8ff;
   border-radius: 5px;
   position: relative;
-  box-shadow: 0 4px 16px 4px #1f232908, 0 4px 8px #1f232905, 0 2px 4px -4px #1f232905;
+  box-shadow:
+    0 4px 16px 4px #1f232908,
+    0 4px 8px #1f232905,
+    0 2px 4px -4px #1f232905;
   border: 1px dashed #94b4ff;
 }
 
@@ -294,4 +303,51 @@
   height: 200px;
   border: 2px dashed #d9d9d9;
   border-radius: 8px;
+}
+
+// 拖拽相关样式
+.dragHandle {
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 46px;
+  height: 100%;
+  cursor: move;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 14px;
+  z-index: 10;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #1890ff;
+    background: rgba(24, 144, 255, 0.1);
+    border-radius: 4px;
+  }
+}
+
+.dragging {
+  opacity: 0.5;
+  transform: none;
+
+  .dragHandle {
+    color: #1890ff;
+    background: rgba(24, 144, 255, 0.2);
+  }
+}
+
+.componentItem {
+  margin-bottom: 16px;
+  position: relative;
+
+  transition: all 0.2s ease;
+
+  &:hover {
+    .dragHandle {
+      opacity: 1;
+    }
+  }
 }

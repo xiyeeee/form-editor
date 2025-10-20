@@ -15,7 +15,6 @@
   gap: 8px;
   padding: 16px;
   width: 300px;
-  background-color: rgba(0, 0, 0, 0.05);
   border-radius: 6px;
 }
 
@@ -47,4 +46,39 @@
   overflow: hidden;
   text-overflow: ellipsis;
   width: 200px;
+}
+
+// 拖拽相关样式
+.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.formItem {
+  transition: all 0.2s ease;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+
+  &:hover {
+    background: #e9ecef;
+    border-color: #dee2e6;
+  }
+
+  &.dragging {
+    background: #fff;
+    border-color: #1890ff;
+    box-shadow: 0 8px 24px rgba(24, 144, 255, 0.2);
+  }
+}
+
+.activeDrag {
+  color: #999;
+  padding: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #1890ff;
+  }
 }

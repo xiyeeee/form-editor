@@ -64,7 +64,7 @@ interface FormComponentWrapperProps {
   previewType?: 'Phone' | 'PC';
   onCompControl?: (type: string, component: FormComponent) => void;
   onAddItem?: (type: string, id: string) => void;
-  onDataChange?: (updatedComponent: FormComponent) => void;
+  onDataChange: (updatedComponent: FormComponent) => void;
 }
 
 const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
@@ -130,18 +130,15 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
   const displaySection = !['Divider', 'Paging', 'FormTitle'].includes(type);
 
   const handleChangeValue = (field: string, value: any) => {
-    console.log(field, value, 'field');
-    // 创建更新后的组件
+    // 创建新的组件对象，保持不可变数据原则
     const updatedComponent = { ...component, [field]: value };
-    // 更新 Redux 状态
-    dispatch(updateComponent({ [field]: value }));
-    dispatch(setCurrentCompKey(uuidv4()));
 
-    // 通知父组件更新 pageCompList
-    if (onDataChange) {
-      console.log(updatedComponent, 'updatedComponent');
-      onDataChange(updatedComponent);
-    }
+    // 同步到父组件 - 父组件会使用 ref 标志处理状态同步
+    onDataChange(updatedComponent);
+
+    // 更新 Redux 状态
+    dispatch(setCurrentComponent(updatedComponent));
+    dispatch(setCurrentCompKey(uuidv4()));
   };
 
   const handleCompControl = (type: string, component: FormComponent) => {
@@ -149,6 +146,7 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
   };
 
   const handleAddItem = (type: string, id: string) => {
+    // 直接调用父组件的 handleAddItem，让父组件处理所有逻辑
     onAddItem?.(type, id);
   };
 
@@ -231,6 +229,16 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
           onChange={(value: any) => handleChangeValue('dataValue', value)}
           onDataChange={(newDataList: any[]) => {
             handleChangeValue('dataList', newDataList);
+          }}
+          onSubDataChange={(subData: any) => {
+            // 处理分页组件的子数据变化
+            if (type === 'Paging') {
+              const updatedComponent = { ...component, ...subData };
+              handleChangeValue('pageSubTitle', subData.pageSubTitle);
+              if (subData.pageSubDescription !== undefined) {
+                handleChangeValue('pageSubDescription', subData.pageSubDescription);
+              }
+            }
           }}
         />
       </div>

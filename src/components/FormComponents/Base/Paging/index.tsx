@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { Divider, Input } from 'antd';
 import { v4 as uuidv4 } from 'uuid';
 import styles from './index.module.less';
@@ -8,7 +8,7 @@ interface Props {
   pagingValue: string;
   pageSubTitle: string;
   pageSubDescription: string;
-  onDataChange?: (data: { pageSubTitle?: string; pageSubDescription?: string }) => void;
+  onSubDataChange?: (data: { pageSubTitle?: string; pageSubDescription?: string }) => void;
 }
 
 const Paging: React.FC<Props> = ({
@@ -16,26 +16,21 @@ const Paging: React.FC<Props> = ({
   pagingValue,
   pageSubTitle,
   pageSubDescription,
-  onDataChange,
+  onSubDataChange,
 }) => {
-  const [localTitle, setLocalTitle] = useState(pageSubTitle);
-  const [localDescription, setLocalDescription] = useState(pageSubDescription);
-
   const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setLocalTitle(value);
-    if (onDataChange) {
-      onDataChange({ pageSubTitle: value });
+    if (onSubDataChange) {
+      onSubDataChange({ pageSubTitle: value });
     }
-  }, [onDataChange]);
+  }, [onSubDataChange]);
 
   const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
-    setLocalDescription(value);
-    if (onDataChange) {
-      onDataChange({ pageSubDescription: value });
+    if (onSubDataChange) {
+      onSubDataChange({ pageSubDescription: value });
     }
-  }, [onDataChange]);
+  }, [onSubDataChange]);
 
   return (
     <div className={styles.pagingContainer}>
@@ -46,18 +41,18 @@ const Paging: React.FC<Props> = ({
       {(isDev || pageSubTitle) && (
         <Input
           className={styles.pageTitle}
-          value={localTitle}
+          value={pageSubTitle || ''}
           onChange={handleTitleChange}
           placeholder="请输入分页标题"
           variant="borderless"
           disabled={!isDev}
         />
       )}
-      
+
       {(isDev || pageSubDescription) && (
         <Input.TextArea
           className={styles.pageSubDescription}
-          value={localDescription}
+          value={pageSubDescription || ''}
           onChange={handleDescriptionChange}
           placeholder="请输入分页描述"
           variant="borderless"

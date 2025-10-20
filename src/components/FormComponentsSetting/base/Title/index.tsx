@@ -19,23 +19,27 @@ const Title: React.FC<TitleProps> = ({ comp }) => {
   const currentComponent = useSelector((state: RootState) => state.form.currentComponent);
 
   const handleChangeInput = (value: string) => {
-    dispatch(updateComponent({
-      title: value
-    }));
+    dispatch(
+      updateComponent({
+        title: value,
+      })
+    );
   };
 
   const titleValue = comp?.title || currentComponent?.title || '';
 
   return (
     <div>
-      <Text type="secondary" className={styles.blockTitle}>标题</Text>
+      <Text type="secondary" className={styles.blockTitle}>
+        标题
+      </Text>
       <TextArea
         className={styles.mb10}
         placeholder="请输入标题"
         allowClear
         showCount
         value={titleValue}
-        onChange={(e) => handleChangeInput(e.target.value)}
+        onChange={e => handleChangeInput(e.target.value)}
         autoSize={{ minRows: 2, maxRows: 5 }}
         maxLength={50}
       />

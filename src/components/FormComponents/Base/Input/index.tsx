@@ -1,6 +1,5 @@
 import React from 'react';
 import { Input } from 'antd';
-import type { FormComponent } from '@/store/formSlice';
 
 interface InputComponentProps {
   id: string;

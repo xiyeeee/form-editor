@@ -1,12 +1,34 @@
-/*
+﻿/*
  * @Author: Xiyeeee
  * @Date: 2025-08-17 22:00:02
  * @Description:
  * @LastEditors: Xiyeeee
  * @LastEditTime: 2025-09-01 20:54:07
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Button, notification, Tooltip, Typography } from 'antd';
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragOverEvent,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
+import { HolderOutlined } from '@ant-design/icons';
 import { useNavigate } from 'umi';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
@@ -17,14 +39,148 @@ import styles from './index.module.less';
 import classNames from 'classnames';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import FormSetting from './components/FormSetting';
-import type { CompItemType } from './componentData';
+import { IgnoreLineNumberTypeList, CompType } from './componentData';
 import * as _ from 'lodash-es';
 import { getDefaultConfig } from './componentConfigData';
-const { Title, Text } = Typography;
-const compList = [...CompListData]; // 组件列表
+const { Text } = Typography;
 import { v4 as uuidv4 } from 'uuid';
 import { FormComponent, setCurrentComponent, updateComponent } from '@/store/formSlice';
 import { useDispatch } from 'react-redux';
+// 侧边栏拖拽组件项
+interface DraggableComponentItemProps {
+  component: any;
+  onClick: () => void;
+}
+
+const DraggableComponentItem: React.FC<DraggableComponentItemProps> = ({ component, onClick }) => {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `sidebar-${component.type}`,
+  });
+
+  const style = {
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  // 防止拖拽后触发点击生成：记录是否发生过拖拽
+  const suppressClickRef = useRef(false);
+  useEffect(() => {
+    if (isDragging) {
+      suppressClickRef.current = true;
+    }
+  }, [isDragging]);
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={classNames(styles.item, {})}
+      {...attributes}
+      {...listeners}
+      onClick={e => {
+        e.stopPropagation();
+        if (suppressClickRef.current) {
+          suppressClickRef.current = false;
+          return;
+        }
+        // 防止拖拽时触发点击
+        if (!isDragging) {
+          e.stopPropagation();
+          onClick();
+        }
+      }}
+    >
+      {component.icon && <img className={styles.icon} src={component.icon} alt="" />}
+      {component.label}
+    </div>
+  );
+};
+
+// 拖拽组件
+interface DraggableFormComponentProps {
+  id: string;
+  item: FormComponent;
+  index: number;
+  isActive: boolean;
+  onSelect: (component: FormComponent) => void;
+  onCompControl: (type: string, component: FormComponent) => void;
+  onAddItem: (type: string, id: string) => void;
+  onDataChange: (updatedComponent: FormComponent) => void;
+  formConfig: any;
+  selectedComp: FormComponent | null;
+}
+
+// 画布放置区域
+interface CanvasDropZoneProps {
+  children: React.ReactNode;
+  onDrop: (event: any) => void;
+}
+
+const CanvasDropZone: React.FC<CanvasDropZoneProps> = ({ children, onDrop }) => {
+  const { setNodeRef } = useDroppable({
+    id: 'canvas-drop-zone',
+  });
+
+  return (
+    <div ref={setNodeRef} style={{ minHeight: '200px', position: 'relative' }}>
+      {children}
+    </div>
+  );
+};
+
+const DraggableFormComponent: React.FC<DraggableFormComponentProps> = ({
+  id,
+  item,
+  index,
+  isActive,
+  onSelect,
+  onCompControl,
+  onAddItem,
+  onDataChange,
+  formConfig,
+  selectedComp,
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={classNames(styles.componentItem, {
+        [styles.activeComponentItem]: isActive,
+        [styles.dragging]: isDragging,
+      })}
+    >
+      {/* 拖拽手柄 */}
+      <div className={styles.dragHandle} {...attributes} {...listeners}>
+        <HolderOutlined />
+      </div>
+
+      <div onClick={() => onSelect(item)} style={{ flex: 1 }}>
+        <FormComponentWrapper
+          component={item}
+          selectedComp={selectedComp}
+          type={item.type}
+          lineNumber={String(index + 1)}
+          formConfig={formConfig}
+          isDev={true}
+          onCompControl={onCompControl}
+          onAddItem={onAddItem}
+          onDataChange={onDataChange}
+        />
+      </div>
+    </div>
+  );
+};
+const compList = [...CompListData]; // 组件列表
+
 interface ActiveCompType {
   type: 'component' | 'header';
   id: string;
@@ -57,8 +213,36 @@ const FormEditor: React.FC = () => {
   const [selectForm, setSelectForm] = useState({});
   const [activeCompId, setActiveCompId] = useState('');
   const [pageCompList, setPageCompList] = useState<FormComponent[]>([]);
+  // 防止 useEffect 覆盖本地更新的 ref 标志
+  const isLocalUpdate = useRef(false);
 
-  // 移除 useEffect，改为手动同步更新
+  // 拖拽相关状态
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [draggedItem, setDraggedItem] = useState<FormComponent | null>(null);
+  const [draggedItemType, setDraggedItemType] = useState<'canvas' | 'sidebar'>('canvas');
+  const [overId, setOverId] = useState<string | null>(null);
+  const [placeholderIndex, setPlaceholderIndex] = useState<number | null>(null);
+
+  // 拖拽传感器：提高点击容错，避免轻点被判为拖拽
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // 监听 currentComponent 变化，同步更新 pageCompList
+  useEffect(() => {
+    if (currentComponent && currentComponent.id && !isLocalUpdate.current) {
+      setPageCompList(prevList =>
+        prevList.map(item => (item.id === currentComponent.id ? { ...currentComponent } : item))
+      );
+    }
+    // 重置标志
+    isLocalUpdate.current = false;
+  }, [currentComponent]);
 
   /**
    * 编辑器编辑内容
@@ -114,10 +298,41 @@ const FormEditor: React.FC = () => {
     return { ...item };
   };
 
-  const handleCreateFormComponents = (component: CompItemType) => {
+  const handleCreateFormComponents = (component: any) => {
     const element = createByClickOrDrag(component);
     /* 新增 */
-    setPageCompList([...pageCompList, element]);
+    const newList = updateCompLineNumber([...pageCompList, element]);
+    setPageCompList(newList);
+    setActiveCompId(element.id);
+    dispatch(setCurrentComponent(element));
+  };
+  // 更新组件行号
+  const updateCompLineNumber = (arr: FormComponent[]): FormComponent[] => {
+    let lineNumber = 0;
+    let pageNumber = 0;
+
+    // 预先计算分页总数
+    const pageCount = arr.filter(comp => comp.type === CompType.paging).length;
+
+    return arr.map(item => {
+      // 检查是否需要忽略行号
+      if (IgnoreLineNumberTypeList.includes(item.type as CompType)) {
+        if (item.type === CompType.paging) {
+          pageNumber++;
+          return {
+            ...item,
+            pagingValue: `第 ${pageNumber} 页 / 共 ${pageCount} 页`,
+          };
+        }
+        return { ...item };
+      }
+
+      lineNumber++;
+      return {
+        ...item,
+        lineNumber: lineNumber.toString().length === 1 ? `0${lineNumber}` : lineNumber.toString(),
+      };
+    });
   };
   const handleSelectComponent = (component: any) => {
     setActiveCompId(component.id);
@@ -133,24 +348,33 @@ const FormEditor: React.FC = () => {
         ...component,
         id: uuidv4(),
       };
-      setPageCompList([...pageCompList, newComp]);
+      const newList = updateCompLineNumber([...pageCompList, newComp]);
+      setPageCompList(newList);
     }
     if (type === 'delete') {
-      setPageCompList(pageCompList.filter(item => item.id !== component.id));
+      const filteredList = pageCompList.filter(item => item.id !== component.id);
+      const newList = updateCompLineNumber(filteredList);
+      setPageCompList(newList);
+
       notification.success({
         message: component.name + '删除成功',
       });
     }
 
     // initDataState();
-    // updateCompLineNumber();
   };
 
   const handleComponentChange = (updatedComponent: FormComponent) => {
-    console.log(updatedComponent, 'updatedComponent');
+    // 标记这是本地更新
+    isLocalUpdate.current = true;
+
+    // 先更新本地状态
     setPageCompList(prevList =>
       prevList.map(item => (item.id === updatedComponent.id ? updatedComponent : item))
     );
+
+    // 再更新 Redux
+    dispatch(setCurrentComponent(updatedComponent));
   };
 
   const handleAddItem = (type: string, id: string) => {
@@ -168,18 +392,170 @@ const FormEditor: React.FC = () => {
         };
 
     if (['new', 'other'].includes(type)) {
-      const updatedList = pageCompList.map(item => {
-        if (item.id === id) {
-          const updatedItem = {
-            ...item,
-            dataList: [...(item.dataList || []), newDataItem],
-          };
-          return updatedItem;
-        }
-        return item;
-      });
-      setPageCompList(updatedList);
+      // 找到要更新的组件
+      const currentComponent = pageCompList.find(item => item.id === id);
+
+      if (currentComponent) {
+        // 创建更新后的组件
+        const updatedComponent = {
+          ...currentComponent,
+          dataList: [...(currentComponent.dataList || []), newDataItem],
+        };
+
+        // 标记这是本地更新
+        isLocalUpdate.current = true;
+
+        // 先更新本地状态
+        setPageCompList(prevList =>
+          prevList.map(item => (item.id === updatedComponent.id ? updatedComponent : item))
+        );
+
+        // 再更新 Redux
+        dispatch(setCurrentComponent(updatedComponent));
+      }
     }
+  };
+
+  // 拖拽开始事件
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    setActiveId(active.id as string);
+
+    // 检查是否是侧边栏组件（以 'sidebar-' 开头）
+    if (active.id.toString().startsWith('sidebar-')) {
+      setDraggedItemType('sidebar');
+      // 从组件数据中找到对应的组件类型
+      const componentType = active.id.toString().replace('sidebar-', '');
+      const componentData = compList
+        .flatMap(group => group.children)
+        .find(comp => comp.type === componentType);
+
+      if (componentData) {
+        // 创建临时组件用于拖拽预览
+        const tempComponent = createByClickOrDrag(componentData);
+        setDraggedItem(tempComponent);
+      }
+    } else {
+      setDraggedItemType('canvas');
+      // 找到被拖拽的画布组件
+      const draggedComponent = pageCompList.find(item => item.id === active.id);
+      setDraggedItem(draggedComponent || null);
+    }
+  };
+
+  // 拖拽经过（用于计算画布中的占位位置）
+  const handleDragOver = (event: DragOverEvent) => {
+    const { over } = event;
+    const oId = over?.id?.toString() || null;
+    setOverId(oId);
+
+    if (draggedItemType === 'sidebar') {
+      if (!oId) {
+        setPlaceholderIndex(null);
+        return;
+      }
+      if (oId === 'canvas-drop-zone') {
+        setPlaceholderIndex(pageCompList.length);
+        return;
+      }
+      const idx = pageCompList.findIndex(i => i.id === oId);
+      setPlaceholderIndex(idx >= 0 ? idx : null);
+    } else {
+      setPlaceholderIndex(null);
+    }
+  };
+
+  // 拖拽结束事件
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    // Guard: 从侧栏拖拽时，只有松手位于画布（包含画布项）才允许创建
+    if (draggedItemType === 'sidebar') {
+      const overIdStr = over?.id?.toString();
+      const validCanvasIds = new Set<string>(['canvas-drop-zone', ...pageCompList.map(i => i.id)]);
+      if (!overIdStr || !validCanvasIds.has(overIdStr)) {
+        setActiveId(null);
+        setDraggedItem(null);
+        setDraggedItemType('canvas');
+        setOverId(null);
+        setPlaceholderIndex(null);
+        return;
+      }
+    }
+
+    // 处理从侧边栏拖拽到画布的情况
+    if (draggedItemType === 'sidebar' && over) {
+      const componentType = active.id.toString().replace('sidebar-', '');
+      const componentData = compList
+        .flatMap(group => group.children)
+        .find(comp => comp.type === componentType);
+
+      if (componentData) {
+        // 创建新组件
+        const newComponent = createByClickOrDrag(componentData);
+
+        // 确定插入位置
+        let insertIndex = pageCompList.length; // 默认插入到末尾
+        if (over && over.id !== 'canvas-drop-zone') {
+          // 如果拖拽到具体组件上，插入到该组件之前
+          const targetIndex = pageCompList.findIndex(item => item.id === over.id);
+          if (targetIndex !== -1) {
+            insertIndex = targetIndex;
+          }
+        }
+
+        // 插入新组件到指定位置
+        const newList = [...pageCompList];
+        newList.splice(insertIndex, 0, newComponent);
+
+        // 重新计算行号
+        const updatedList = updateCompLineNumber(newList);
+
+        // 标记这是本地更新
+        isLocalUpdate.current = true;
+
+        // 更新本地状态
+        setPageCompList(updatedList);
+
+        // 选中新添加的组件
+        setActiveCompId(newComponent.id);
+        dispatch(setCurrentComponent(newComponent));
+      }
+    }
+    // 处理画布内组件重新排序
+    else if (draggedItemType === 'canvas' && over && active.id !== over.id) {
+      const oldIndex = pageCompList.findIndex(item => item.id === active.id);
+      const newIndex = pageCompList.findIndex(item => item.id === over.id);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        // 使用 arrayMove 重新排序
+        const newList = arrayMove(pageCompList, oldIndex, newIndex);
+
+        // 重新计算行号
+        const updatedList = updateCompLineNumber(newList);
+
+        // 标记这是本地更新
+        isLocalUpdate.current = true;
+
+        // 更新本地状态
+        setPageCompList(updatedList);
+
+        // 更新 Redux 中的当前组件
+        if (currentComponent) {
+          const updatedCurrentComponent = updatedList.find(item => item.id === currentComponent.id);
+          if (updatedCurrentComponent) {
+            dispatch(setCurrentComponent(updatedCurrentComponent));
+          }
+        }
+      }
+    }
+
+    // 清理状态
+    setActiveId(null);
+    setDraggedItem(null);
+    setDraggedItemType('canvas');
+    setOverId(null);
+    setPlaceholderIndex(null);
   };
 
   const callback = () => {
@@ -196,7 +572,7 @@ const FormEditor: React.FC = () => {
           <div className={styles.titleData}>
             <span className={styles.name}>React动态表单</span>
             <Text type="secondary" className={styles.time}>
-              编辑于2024-11-03 09:12
+              编辑于 2024-11-03 09:12
             </Text>
           </div>
           <div className={styles.control}>
@@ -227,77 +603,168 @@ const FormEditor: React.FC = () => {
       </div>
 
       <div className={classNames(styles.content, styles.editorContent)}>
-        <FormSideBar activeType={activeType} setActiveType={setActiveType}></FormSideBar>
-        {/* 拖拽组件 */}
-        <div className={styles.components}>
-          {compList.map(componentsItem => (
-            <div className={styles.componentItem} key={componentsItem.type}>
-              <div className={styles.compItemTitle}>
-                {componentsItem.name}
-                {styles.tooltip && (
-                  <Tooltip title={componentsItem.tooltip}>
-                    <QuestionCircleOutlined />
-                  </Tooltip>
-                )}
-              </div>
-              <div className={classNames(styles.compList)}>
-                {componentsItem.children.map(component => (
-                  <div
-                    key={`${componentsItem.type}-${component.type}`}
-                    className={classNames(styles.item)}
-                    onClick={() => {
-                      handleCreateFormComponents(component);
-                    }}
-                  >
-                    {component.icon && <img className={styles.icon} src={component.icon} alt="" />}
-                    {component.label}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className={styles.comps}>
-          <div className={styles.formPreview}>
-            {pageCompList.length === 0 ? (
-              <div className={styles.emptyState}>
-                <Text type="secondary">暂无表单组件，请从左侧拖拽添加</Text>
-              </div>
-            ) : (
-              pageCompList.map((component, index) => (
-                <div
-                  key={component.id}
-                  className={classNames(styles.componentItem, {
-                    [styles.activeComponentItem]: activeCompId === component.id,
-                  })}
-                  onClick={() => {
-                    handleSelectComponent(component);
-                  }}
-                >
-                  <FormComponentWrapper
-                    key={component.id}
-                    component={component}
-                    selectedComp={getActiveComp() || null}
-                    type={component.type}
-                    lineNumber={String(index + 1)}
-                    formConfig={globalFormConfig}
-                    isDev={true}
-                    onCompControl={handleCompControl}
-                    onAddItem={handleAddItem}
-                    onDataChange={handleComponentChange}
-                  />
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
+          <FormSideBar activeType={activeType} setActiveType={setActiveType}></FormSideBar>
+          {/* 拖拽组件 */}
+          <div className={styles.components}>
+            {compList.map(componentsItem => (
+              <div className={styles.componentItem} key={componentsItem.type}>
+                <div className={styles.compItemTitle}>
+                  {componentsItem.name}
+                  {styles.tooltip && (
+                    <Tooltip title={componentsItem.tooltip}>
+                      <QuestionCircleOutlined />
+                    </Tooltip>
+                  )}
                 </div>
-              ))
-            )}
+                <div className={classNames(styles.compList)}>
+                  {componentsItem.children.map(component => (
+                    <DraggableComponentItem
+                      key={`${componentsItem.type}-${component.type}`}
+                      component={component}
+                      onClick={() => handleCreateFormComponents(component)}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-        <div className={styles.rightFormConfig}>
-          <FormSetting
-            currentCompId={activeCompId}
-            selectForm={selectForm}
-            selectComp={getActiveComp()}
-          ></FormSetting>
-        </div>
+          <div className={styles.comps}>
+            <div className={styles.formPreview}>
+              <CanvasDropZone onDrop={() => {}}>
+                <SortableContext
+                  items={pageCompList.map(item => item.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {pageCompList.length === 0 ? (
+                    <div className={styles.emptyState}>
+                      <Text type="secondary">暂无表单组件，点击或拖拽添加</Text>
+                    </div>
+                  ) : (
+                    pageCompList.map((item, index) => (
+                      <React.Fragment key={item.id}>
+                        {draggedItemType === 'sidebar' &&
+                          draggedItem &&
+                          placeholderIndex === index && (
+                            <div
+                              style={{
+                                border: '2px dashed #1677ff',
+                                borderRadius: 6,
+                                background: 'rgba(22,119,255,0.04)',
+                                padding: 8,
+                                marginBottom: 16,
+                              }}
+                            >
+                              <FormComponentWrapper
+                                component={draggedItem}
+                                selectedComp={null}
+                                type={draggedItem.type}
+                                lineNumber={draggedItem.lineNumber}
+                                formConfig={globalFormConfig}
+                                isDev={true}
+                                onCompControl={() => {}}
+                                onAddItem={() => {}}
+                                onDataChange={() => {}}
+                              />
+                            </div>
+                          )}
+                        <DraggableFormComponent
+                          id={item.id}
+                          item={item}
+                          index={index}
+                          isActive={activeCompId === item.id}
+                          onSelect={handleSelectComponent}
+                          onCompControl={handleCompControl}
+                          onAddItem={handleAddItem}
+                          onDataChange={handleComponentChange}
+                          formConfig={globalFormConfig}
+                          selectedComp={getActiveComp() || null}
+                        />
+                      </React.Fragment>
+                    ))
+                  )}
+                </SortableContext>
+                {/* 拖拽到画布空白区域时的占位 */}
+                {draggedItemType === 'sidebar' &&
+                  draggedItem &&
+                  placeholderIndex === pageCompList.length && (
+                    <div
+                      style={{
+                        border: '2px dashed #1677ff',
+                        borderRadius: 6,
+                        background: 'rgba(22,119,255,0.04)',
+                        padding: 8,
+                        marginTop: 16,
+                      }}
+                    >
+                      123
+                    </div>
+                  )}
+              </CanvasDropZone>
+
+              {/* 拖拽时的遮罩层 */}
+              <DragOverlay>
+                {draggedItem ? (
+                  draggedItemType === 'sidebar' ? (
+                    (() => {
+                      const meta = compList
+                        .flatMap(group => group.children)
+                        .find(c => c.type === draggedItem.type);
+                      return (
+                        <div
+                          style={{
+                            transform: 'none',
+                            opacity: 0.95,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            padding: 8,
+                            borderRadius: 6,
+                            background: '#fff',
+                            boxShadow: '0 6px 16px rgba(0,0,0,0.12)',
+                          }}
+                        >
+                          {meta?.icon && <img className={styles.icon} src={meta.icon} alt="" />}
+                          <span>{meta?.label}</span>
+                        </div>
+                      );
+                    })()
+                  ) : (
+                    <div
+                      className={styles['dnd-overlay']}
+                      style={{ transform: 'none', padding: 0, opacity: 0.95 }}
+                    >
+                      <FormComponentWrapper
+                        component={draggedItem}
+                        selectedComp={null}
+                        type={draggedItem.type}
+                        lineNumber={draggedItem.lineNumber}
+                        formConfig={globalFormConfig}
+                        isDev={true}
+                        onCompControl={() => {}}
+                        onAddItem={() => {}}
+                        onDataChange={() => {}}
+                      />
+                    </div>
+                  )
+                ) : null}
+              </DragOverlay>
+            </div>
+          </div>
+          <div className={styles.rightFormConfig}>
+            <FormSetting
+              currentCompId={activeCompId}
+              selectForm={selectForm}
+              selectComp={getActiveComp()}
+            ></FormSetting>
+          </div>
+        </DndContext>
       </div>
     </div>
   );

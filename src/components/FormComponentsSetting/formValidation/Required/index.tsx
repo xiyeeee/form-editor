@@ -11,15 +11,25 @@ interface RequiredProps {
   comp?: {
     isRequired?: boolean;
   };
+  onDataChange?: (updatedComponent: any) => void;
 }
 
-const Required: React.FC<RequiredProps> = ({ comp }) => {
+const Required: React.FC<RequiredProps> = ({ comp, onDataChange }) => {
   const dispatch = useDispatch();
   const currentComponent = useSelector((state: RootState) => state.form.currentComponent);
 
   const isRequired = comp?.isRequired ?? currentComponent?.isRequired ?? false;
 
   const handleChangeInput = (checked: boolean) => {
+    // 创建新的组件对象
+    const updatedComponent = { ...comp, isRequired: checked };
+
+    // 同步到父组件
+    if (onDataChange) {
+      onDataChange(updatedComponent);
+    }
+
+    // 更新 Redux 状态
     dispatch(updateComponent({
       isRequired: checked
     }));
