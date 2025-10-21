@@ -141,6 +141,7 @@ const DraggableFormComponent: React.FC<DraggableFormComponentProps> = ({
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
+    disabled: !isActive,
   });
 
   const style = {
@@ -159,9 +160,13 @@ const DraggableFormComponent: React.FC<DraggableFormComponentProps> = ({
       })}
     >
       {/* 拖拽手柄 */}
-      <div className={styles.dragHandle} {...attributes} {...listeners}>
-        <HolderOutlined />
-      </div>
+      <div
+        className={styles.dragHandle}
+        {...(isActive ? attributes : {})}
+        {...(isActive ? listeners : {})}
+        aria-disabled={!isActive}
+        style={{ cursor: isActive ? 'grab' : 'default', opacity: isActive ? 1 : 0.5 }}
+      ></div>
 
       <div onClick={() => onSelect(item)} style={{ flex: 1 }}>
         <FormComponentWrapper
@@ -204,6 +209,20 @@ interface HeaderType {
   defUrl: string;
   titleDescriptionPosition: 'left' | 'right' | 'center';
 }
+
+// 占位组件（icon + label），样式见 index.module.less
+const Placeholder: React.FC<{ icon?: string; label?: string; tail?: boolean }> = ({
+  icon,
+  label,
+  tail = false,
+}) => (
+  <div className={classNames(styles.placeholder, { [styles.placeholderTail]: tail })}>
+    <div className={styles.placeholderInner}>
+      {icon && <img className={styles.icon} src={icon} alt="" />}
+      <span>{label}</span>
+    </div>
+  </div>
+);
 const FormEditor: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -445,11 +464,12 @@ const FormEditor: React.FC = () => {
 
   // 拖拽经过（用于计算画布中的占位位置）
   const handleDragOver = (event: DragOverEvent) => {
-    const { over } = event;
+    const { over, active } = event;
     const oId = over?.id?.toString() || null;
     setOverId(oId);
 
     if (draggedItemType === 'sidebar') {
+      // 与画布内组件拖拽保持一致：占位符定位到当前 over 的索引（插到其前面）
       if (!oId) {
         setPlaceholderIndex(null);
         return;
@@ -457,6 +477,40 @@ const FormEditor: React.FC = () => {
       if (oId === 'canvas-drop-zone') {
         setPlaceholderIndex(pageCompList.length);
         return;
+      }
+      const idxQuick = pageCompList.findIndex(i => i.id === oId);
+      setPlaceholderIndex(idxQuick >= 0 ? idxQuick : null);
+      return;
+      if (!oId) {
+        setPlaceholderIndex(null);
+        return;
+      }
+      if (oId === 'canvas-drop-zone') {
+        setPlaceholderIndex(pageCompList.length);
+        return;
+      }
+      // 根据指针落点（目标组件上/下半区）决定前/后插入
+      const targetIndex = pageCompList.findIndex(i => i.id === oId);
+      if (targetIndex >= 0) {
+        const overRect: any = over?.rect;
+        // 计算指针/拖拽中心的 Y
+        const activeRect = (active as any)?.rect?.current;
+        const translated = activeRect?.translated;
+        let cursorY: number | null = null;
+        if (translated) {
+          cursorY = translated.top + translated.height / 2;
+        } else if (activeRect?.initial && (event as any)?.delta) {
+          // 对来自 sidebar 的拖拽，translated 可能缺失，使用 initial + delta 估算
+          const delta = (event as any).delta;
+          const initial = activeRect.initial;
+          cursorY = initial.top + delta.y + initial.height / 2;
+        }
+        if (overRect && cursorY !== null) {
+          const middleY = overRect.top + overRect.height / 2;
+          const insertIndex = cursorY < middleY ? targetIndex : targetIndex + 1;
+          setPlaceholderIndex(Math.max(0, Math.min(insertIndex, pageCompList.length)));
+          return;
+        }
       }
       const idx = pageCompList.findIndex(i => i.id === oId);
       setPlaceholderIndex(idx >= 0 ? idx : null);
@@ -505,6 +559,7 @@ const FormEditor: React.FC = () => {
         }
 
         // 插入新组件到指定位置
+        insertIndex = typeof placeholderIndex === 'number' ? placeholderIndex : insertIndex;
         const newList = [...pageCompList];
         newList.splice(insertIndex, 0, newComponent);
 
@@ -651,29 +706,13 @@ const FormEditor: React.FC = () => {
                       <React.Fragment key={item.id}>
                         {draggedItemType === 'sidebar' &&
                           draggedItem &&
-                          placeholderIndex === index && (
-                            <div
-                              style={{
-                                border: '2px dashed #1677ff',
-                                borderRadius: 6,
-                                background: 'rgba(22,119,255,0.04)',
-                                padding: 8,
-                                marginBottom: 16,
-                              }}
-                            >
-                              <FormComponentWrapper
-                                component={draggedItem}
-                                selectedComp={null}
-                                type={draggedItem.type}
-                                lineNumber={draggedItem.lineNumber}
-                                formConfig={globalFormConfig}
-                                isDev={true}
-                                onCompControl={() => {}}
-                                onAddItem={() => {}}
-                                onDataChange={() => {}}
-                              />
-                            </div>
-                          )}
+                          placeholderIndex === index &&
+                          (() => {
+                            const meta = compList
+                              .flatMap(group => group.children)
+                              .find(c => c.type === draggedItem?.type);
+                            return <Placeholder icon={meta?.icon} label={meta?.label} />;
+                          })()}
                         <DraggableFormComponent
                           id={item.id}
                           item={item}
@@ -693,19 +732,13 @@ const FormEditor: React.FC = () => {
                 {/* 拖拽到画布空白区域时的占位 */}
                 {draggedItemType === 'sidebar' &&
                   draggedItem &&
-                  placeholderIndex === pageCompList.length && (
-                    <div
-                      style={{
-                        border: '2px dashed #1677ff',
-                        borderRadius: 6,
-                        background: 'rgba(22,119,255,0.04)',
-                        padding: 8,
-                        marginTop: 16,
-                      }}
-                    >
-                      123
-                    </div>
-                  )}
+                  placeholderIndex === pageCompList.length &&
+                  (() => {
+                    const meta = compList
+                      .flatMap(group => group.children)
+                      .find(c => c.type === draggedItem?.type);
+                    return <Placeholder icon={meta?.icon} label={meta?.label} tail />;
+                  })()}
               </CanvasDropZone>
 
               {/* 拖拽时的遮罩层 */}

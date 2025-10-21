@@ -59,7 +59,12 @@ interface FormSettingProps {
   onDataChange?: (updatedComponent: any) => void;
 }
 
-const FormSetting: React.FC<FormSettingProps> = ({ selectComp, selectForm, currentCompId, onDataChange }) => {
+const FormSetting: React.FC<FormSettingProps> = ({
+  selectComp,
+  selectForm,
+  currentCompId,
+  onDataChange,
+}) => {
   const currentComponent = useSelector((state: RootState) => state.form.currentComponent);
   const globalFormConfig = useSelector((state: RootState) => state.form.globalFormConfig);
 
@@ -95,12 +100,12 @@ const FormSetting: React.FC<FormSettingProps> = ({ selectComp, selectForm, curre
 
   return (
     <div className={styles.setting}>
-      <div className={styles.compName}>
+      <div className={styles.titleName}>
         <Title level={5} className={styles.titleVal}>
           {currCompIcon ? (
-            <img src={currCompIcon} className={styles.compIcon} alt="" />
+            <img src={currCompIcon} alt="" />
           ) : (
-            <span className={styles.compIcon}>🍋</span>
+            <span className={styles.compIcon}></span>
           )}
           <span className={styles.name}>{renderComponentName()}</span>
         </Title>
@@ -162,7 +167,9 @@ const FormSetting: React.FC<FormSettingProps> = ({ selectComp, selectForm, curre
                 <div className={styles.categoryName}>表单验证</div>
                 <div className={styles.content}>
                   {showParams('maxValue') && <NumberConfig comp={actualSelectComp} />}
-                  {showParams('isRequired') && <Required comp={actualSelectComp} onDataChange={onDataChange} />}
+                  {showParams('isRequired') && (
+                    <Required comp={actualSelectComp} onDataChange={onDataChange} />
+                  )}
                   {showRegParams() && <ValidationSystem comp={actualSelectComp} />}
                   {showParams('isCustomErrorMessage') && (
                     <ValidationCustom comp={actualSelectComp} />
