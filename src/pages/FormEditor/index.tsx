@@ -5,7 +5,7 @@
  * @LastEditors: Xiyeeee
  * @LastEditTime: 2025-09-01 20:54:07
  */
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Button, notification, Tooltip, Typography } from 'antd';
 import {
   DndContext,
@@ -122,6 +122,23 @@ const CanvasDropZone: React.FC<CanvasDropZoneProps> = ({ children }) => {
 
   return (
     <div ref={setNodeRef} style={{ minHeight: '200px', position: 'relative' }}>
+      {children}
+    </div>
+  );
+};
+
+// 侧边栏放置区域
+interface SidebarDropZoneProps {
+  children: React.ReactNode;
+}
+
+const SidebarDropZone: React.FC<SidebarDropZoneProps> = ({ children }) => {
+  const { setNodeRef } = useDroppable({
+    id: 'sidebar-drop-zone',
+  });
+
+  return (
+    <div ref={setNodeRef} className={styles.components}>
       {children}
     </div>
   );
@@ -244,7 +261,10 @@ const FormEditor: React.FC = () => {
   // 拖拽传感器：提高点击容错，避免轻点被判为拖拽
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 8 },
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
@@ -464,6 +484,7 @@ const FormEditor: React.FC = () => {
   const handleDragOver = (event: DragOverEvent) => {
     const { over, active } = event;
     const oId = over?.id?.toString() || null;
+    console.log('event', over);
     setOverId(oId);
   };
 
@@ -613,7 +634,7 @@ const FormEditor: React.FC = () => {
         >
           <FormSideBar activeType={activeType} setActiveType={setActiveType}></FormSideBar>
           {/* 拖拽组件 */}
-          <div className={styles.components}>
+          <SidebarDropZone>
             {compList.map(componentsItem => (
               <div className={styles.componentItem} key={componentsItem.type}>
                 <div className={styles.compItemTitle}>
@@ -635,7 +656,7 @@ const FormEditor: React.FC = () => {
                 </div>
               </div>
             ))}
-          </div>
+          </SidebarDropZone>
           <div className={styles.comps}>
             <div className={styles.formPreview}>
               <CanvasDropZone onDrop={() => {}}>
@@ -646,6 +667,16 @@ const FormEditor: React.FC = () => {
                   {pageCompList.length === 0 ? (
                     <div className={styles.emptyState}>
                       <Text type="secondary">暂无表单组件，点击或拖拽添加</Text>
+                      {/* 从侧边栏拖拽到空画布时显示占位符 */}
+                      {draggedItemType === 'sidebar' &&
+                        draggedItem &&
+                        overId === 'canvas-drop-zone' &&
+                        (() => {
+                          const meta = compList
+                            .flatMap(group => group.children)
+                            .find(c => c.type === draggedItem?.type);
+                          return <Placeholder icon={meta?.icon} label={meta?.label} />;
+                        })()}
                     </div>
                   ) : (
                     pageCompList.map((item, index) => (
@@ -669,7 +700,7 @@ const FormEditor: React.FC = () => {
                           onAddItem={handleAddItem}
                           onDataChange={handleComponentChange}
                           formConfig={globalFormConfig}
-                          selectedComp={getActiveComp() || null}
+                          selectedComp={(getActiveComp() as FormComponent) || null}
                         />
                       </React.Fragment>
                     ))
@@ -711,7 +742,7 @@ const FormEditor: React.FC = () => {
                     >
                       <FormComponentWrapper
                         component={draggedItem}
-                        selectedComp={null}
+                        selectedComp={getActiveComp()}
                         type={draggedItem.type}
                         lineNumber={draggedItem.lineNumber}
                         formConfig={globalFormConfig}
