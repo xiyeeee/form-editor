@@ -115,7 +115,7 @@ interface CanvasDropZoneProps {
   onDrop: (event: any) => void;
 }
 
-const CanvasDropZone: React.FC<CanvasDropZoneProps> = ({ children, onDrop }) => {
+const CanvasDropZone: React.FC<CanvasDropZoneProps> = ({ children }) => {
   const { setNodeRef } = useDroppable({
     id: 'canvas-drop-zone',
   });
@@ -240,7 +240,6 @@ const FormEditor: React.FC = () => {
   const [draggedItem, setDraggedItem] = useState<FormComponent | null>(null);
   const [draggedItemType, setDraggedItemType] = useState<'canvas' | 'sidebar'>('canvas');
   const [overId, setOverId] = useState<string | null>(null);
-  const [placeholderIndex, setPlaceholderIndex] = useState<number | null>(null);
 
   // 拖拽传感器：提高点击容错，避免轻点被判为拖拽
   const sensors = useSensors(
@@ -439,7 +438,6 @@ const FormEditor: React.FC = () => {
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setActiveId(active.id as string);
-
     // 检查是否是侧边栏组件（以 'sidebar-' 开头）
     if (active.id.toString().startsWith('sidebar-')) {
       setDraggedItemType('sidebar');
@@ -467,56 +465,6 @@ const FormEditor: React.FC = () => {
     const { over, active } = event;
     const oId = over?.id?.toString() || null;
     setOverId(oId);
-
-    if (draggedItemType === 'sidebar') {
-      // 与画布内组件拖拽保持一致：占位符定位到当前 over 的索引（插到其前面）
-      if (!oId) {
-        setPlaceholderIndex(null);
-        return;
-      }
-      if (oId === 'canvas-drop-zone') {
-        setPlaceholderIndex(pageCompList.length);
-        return;
-      }
-      const idxQuick = pageCompList.findIndex(i => i.id === oId);
-      setPlaceholderIndex(idxQuick >= 0 ? idxQuick : null);
-      return;
-      if (!oId) {
-        setPlaceholderIndex(null);
-        return;
-      }
-      if (oId === 'canvas-drop-zone') {
-        setPlaceholderIndex(pageCompList.length);
-        return;
-      }
-      // 根据指针落点（目标组件上/下半区）决定前/后插入
-      const targetIndex = pageCompList.findIndex(i => i.id === oId);
-      if (targetIndex >= 0) {
-        const overRect: any = over?.rect;
-        // 计算指针/拖拽中心的 Y
-        const activeRect = (active as any)?.rect?.current;
-        const translated = activeRect?.translated;
-        let cursorY: number | null = null;
-        if (translated) {
-          cursorY = translated.top + translated.height / 2;
-        } else if (activeRect?.initial && (event as any)?.delta) {
-          // 对来自 sidebar 的拖拽，translated 可能缺失，使用 initial + delta 估算
-          const delta = (event as any).delta;
-          const initial = activeRect.initial;
-          cursorY = initial.top + delta.y + initial.height / 2;
-        }
-        if (overRect && cursorY !== null) {
-          const middleY = overRect.top + overRect.height / 2;
-          const insertIndex = cursorY < middleY ? targetIndex : targetIndex + 1;
-          setPlaceholderIndex(Math.max(0, Math.min(insertIndex, pageCompList.length)));
-          return;
-        }
-      }
-      const idx = pageCompList.findIndex(i => i.id === oId);
-      setPlaceholderIndex(idx >= 0 ? idx : null);
-    } else {
-      setPlaceholderIndex(null);
-    }
   };
 
   // 拖拽结束事件
@@ -532,7 +480,6 @@ const FormEditor: React.FC = () => {
         setDraggedItem(null);
         setDraggedItemType('canvas');
         setOverId(null);
-        setPlaceholderIndex(null);
         return;
       }
     }
@@ -559,7 +506,7 @@ const FormEditor: React.FC = () => {
         }
 
         // 插入新组件到指定位置
-        insertIndex = typeof placeholderIndex === 'number' ? placeholderIndex : insertIndex;
+        insertIndex = pageCompList.findIndex(item => item.id === over.id);
         const newList = [...pageCompList];
         newList.splice(insertIndex, 0, newComponent);
 
@@ -610,7 +557,6 @@ const FormEditor: React.FC = () => {
     setDraggedItem(null);
     setDraggedItemType('canvas');
     setOverId(null);
-    setPlaceholderIndex(null);
   };
 
   const callback = () => {
@@ -706,7 +652,7 @@ const FormEditor: React.FC = () => {
                       <React.Fragment key={item.id}>
                         {draggedItemType === 'sidebar' &&
                           draggedItem &&
-                          placeholderIndex === index &&
+                          overId === item.id &&
                           (() => {
                             const meta = compList
                               .flatMap(group => group.children)
@@ -729,16 +675,6 @@ const FormEditor: React.FC = () => {
                     ))
                   )}
                 </SortableContext>
-                {/* 拖拽到画布空白区域时的占位 */}
-                {draggedItemType === 'sidebar' &&
-                  draggedItem &&
-                  placeholderIndex === pageCompList.length &&
-                  (() => {
-                    const meta = compList
-                      .flatMap(group => group.children)
-                      .find(c => c.type === draggedItem?.type);
-                    return <Placeholder icon={meta?.icon} label={meta?.label} tail />;
-                  })()}
               </CanvasDropZone>
 
               {/* 拖拽时的遮罩层 */}
