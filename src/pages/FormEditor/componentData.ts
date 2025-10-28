@@ -90,7 +90,7 @@ interface CompCategoryType {
   children: CompItemType[];
 }
 
-export const IgnoreLineNumberTypeList = [CompType.divider, CompType.paging];
+export const IgnoreLineNumberTypeList = [CompType.divider, CompType.paging, CompType.formTitle];
 // 显示组件
 const ShowComponentList: CompItemType[] = [
   {

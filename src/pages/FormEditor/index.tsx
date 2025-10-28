@@ -59,6 +59,7 @@ const DraggableComponentItem: React.FC<DraggableComponentItemProps> = ({ compone
 
   const style = {
     opacity: isDragging ? 0.5 : 1,
+    cursor: isDragging ? 'move' : 'default',
   };
 
   // 防止拖拽后触发点击生成：记录是否发生过拖拽
@@ -175,6 +176,7 @@ const DraggableFormComponent: React.FC<DraggableFormComponentProps> = ({
         [styles.activeComponentItem]: isActive,
         [styles.dragging]: isDragging,
       })}
+      onClick={() => onSelect(item)}
     >
       {/* 拖拽手柄 */}
       <div
@@ -182,10 +184,10 @@ const DraggableFormComponent: React.FC<DraggableFormComponentProps> = ({
         {...(isActive ? attributes : {})}
         {...(isActive ? listeners : {})}
         aria-disabled={!isActive}
-        style={{ cursor: isActive ? 'grab' : 'default', opacity: isActive ? 1 : 0.5 }}
+        style={{ cursor: isActive ? 'move' : 'default', opacity: isActive ? 1 : 0.5 }}
       ></div>
 
-      <div onClick={() => onSelect(item)} style={{ flex: 1 }}>
+      <div style={{ flex: 1 }}>
         <FormComponentWrapper
           component={item}
           selectedComp={selectedComp}
@@ -262,7 +264,7 @@ const FormEditor: React.FC = () => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 250,
+        delay: 200,
         tolerance: 5,
       },
     }),
@@ -338,6 +340,7 @@ const FormEditor: React.FC = () => {
 
   const handleCreateFormComponents = (component: any) => {
     const element = createByClickOrDrag(component);
+    isLocalUpdate.current = true;
     /* 新增 */
     const newList = updateCompLineNumber([...pageCompList, element]);
     setPageCompList(newList);
@@ -386,6 +389,7 @@ const FormEditor: React.FC = () => {
         ...component,
         id: uuidv4(),
       };
+
       const newList = updateCompLineNumber([...pageCompList, newComp]);
       setPageCompList(newList);
     }
@@ -482,29 +486,26 @@ const FormEditor: React.FC = () => {
 
   // 拖拽经过（用于计算画布中的占位位置）
   const handleDragOver = (event: DragOverEvent) => {
-    const { over, active } = event;
-    const oId = over?.id?.toString() || null;
-    console.log('event', over);
+    const { over } = event;
+    if (!over || !over.id) {
+      return;
+    }
+    const oId = over?.id?.toString();
     setOverId(oId);
   };
 
   // 拖拽结束事件
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-
     // Guard: 从侧栏拖拽时，只有松手位于画布（包含画布项）才允许创建
     if (draggedItemType === 'sidebar') {
       const overIdStr = over?.id?.toString();
       const validCanvasIds = new Set<string>(['canvas-drop-zone', ...pageCompList.map(i => i.id)]);
       if (!overIdStr || !validCanvasIds.has(overIdStr)) {
-        setActiveId(null);
-        setDraggedItem(null);
-        setDraggedItemType('canvas');
-        setOverId(null);
+        handleResetDragEnd();
         return;
       }
     }
-
     // 处理从侧边栏拖拽到画布的情况
     if (draggedItemType === 'sidebar' && over) {
       const componentType = active.id.toString().replace('sidebar-', '');
@@ -516,27 +517,17 @@ const FormEditor: React.FC = () => {
         // 创建新组件
         const newComponent = createByClickOrDrag(componentData);
 
-        // 确定插入位置
-        let insertIndex = pageCompList.length; // 默认插入到末尾
-        if (over && over.id !== 'canvas-drop-zone') {
-          // 如果拖拽到具体组件上，插入到该组件之前
-          const targetIndex = pageCompList.findIndex(item => item.id === over.id);
-          if (targetIndex !== -1) {
-            insertIndex = targetIndex;
-          }
-        }
-
         // 插入新组件到指定位置
-        insertIndex = pageCompList.findIndex(item => item.id === over.id);
+        let insertIndex = pageCompList.findIndex(item => item.id === over.id);
+        if (over.id === 'canvas-drop-zone') {
+          insertIndex = pageCompList.length;
+        }
         const newList = [...pageCompList];
         newList.splice(insertIndex, 0, newComponent);
-
         // 重新计算行号
         const updatedList = updateCompLineNumber(newList);
-
         // 标记这是本地更新
         isLocalUpdate.current = true;
-
         // 更新本地状态
         setPageCompList(updatedList);
 
@@ -574,12 +565,14 @@ const FormEditor: React.FC = () => {
     }
 
     // 清理状态
+    handleResetDragEnd();
+  };
+  const handleResetDragEnd = () => {
     setActiveId(null);
     setDraggedItem(null);
     setDraggedItemType('canvas');
     setOverId(null);
   };
-
   const callback = () => {
     navigate('/');
   };
@@ -627,7 +620,6 @@ const FormEditor: React.FC = () => {
       <div className={classNames(styles.content, styles.editorContent)}>
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
@@ -667,16 +659,6 @@ const FormEditor: React.FC = () => {
                   {pageCompList.length === 0 ? (
                     <div className={styles.emptyState}>
                       <Text type="secondary">暂无表单组件，点击或拖拽添加</Text>
-                      {/* 从侧边栏拖拽到空画布时显示占位符 */}
-                      {draggedItemType === 'sidebar' &&
-                        draggedItem &&
-                        overId === 'canvas-drop-zone' &&
-                        (() => {
-                          const meta = compList
-                            .flatMap(group => group.children)
-                            .find(c => c.type === draggedItem?.type);
-                          return <Placeholder icon={meta?.icon} label={meta?.label} />;
-                        })()}
                     </div>
                   ) : (
                     pageCompList.map((item, index) => (
@@ -684,6 +666,7 @@ const FormEditor: React.FC = () => {
                         {draggedItemType === 'sidebar' &&
                           draggedItem &&
                           overId === item.id &&
+                          overId !== 'canvas-drop-zone' &&
                           (() => {
                             const meta = compList
                               .flatMap(group => group.children)
@@ -705,6 +688,20 @@ const FormEditor: React.FC = () => {
                       </React.Fragment>
                     ))
                   )}
+                  {draggedItemType === 'sidebar' &&
+                    draggedItem &&
+                    overId &&
+                    overId === 'canvas-drop-zone' &&
+                    (() => {
+                      const meta = compList
+                        .flatMap(group => group.children)
+                        .find(c => c.type === draggedItem?.type);
+                      return (
+                        <>
+                          <Placeholder icon={meta?.icon} label={meta?.label} />
+                        </>
+                      );
+                    })()}
                 </SortableContext>
               </CanvasDropZone>
 
@@ -719,6 +716,8 @@ const FormEditor: React.FC = () => {
                       return (
                         <div
                           style={{
+                            width: 150,
+                            cursor: 'move',
                             transform: 'none',
                             opacity: 0.95,
                             display: 'inline-flex',
@@ -736,10 +735,7 @@ const FormEditor: React.FC = () => {
                       );
                     })()
                   ) : (
-                    <div
-                      className={styles['dnd-overlay']}
-                      style={{ transform: 'none', padding: 0, opacity: 0.95 }}
-                    >
+                    <div style={{ transform: 'none', padding: 0, opacity: 0.95 }}>
                       <FormComponentWrapper
                         component={draggedItem}
                         selectedComp={getActiveComp()}

@@ -69,7 +69,7 @@ const FormTitle: React.FC<FormTitleProps> = ({
     <div className={styles.formHeader}>
       {titleImageShow && (
         <div className={styles.headerImg}>
-          <img src={getImageUrl(titleImageUrl)} alt="Title" />
+          {/* <img src={getImageUrl(titleImageUrl)} alt="Title" /> */}
         </div>
       )}
       <section className={styles.titleSection} style={computedStyle as any}>
