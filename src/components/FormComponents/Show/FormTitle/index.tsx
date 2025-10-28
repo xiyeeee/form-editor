@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import styles from './index.module.less';
+import defaultImage from '/src/assets/background/default.jpg';
+import imageImage from '/src/assets/background/image.jpg';
 
 interface FormTitleProps {
   id: string;
@@ -29,6 +31,12 @@ const FormTitle: React.FC<FormTitleProps> = ({
   titleDescriptionPosition,
   isDev,
 }) => {
+  // 图片映射
+  const imageMap: Record<string, string> = {
+    'default.jpg': defaultImage,
+    'image.jpg': imageImage,
+  };
+
   const computedStyle = {
     textAlign: titleDescriptionPosition || 'center',
   };
@@ -53,11 +61,16 @@ const FormTitle: React.FC<FormTitleProps> = ({
   };
 
   const getImageUrl = (imgUrl: string) => {
-    try {
-      return `/src/assets/background/${imgUrl}`;
-    } catch (e) {
-      return `/src/assets/background/default.jpg`;
+    // 如果提供了完整的URL（包含http/https），直接使用
+    if (imgUrl && (imgUrl.startsWith('http://') || imgUrl.startsWith('https://'))) {
+      return imgUrl;
     }
+    // 如果是映射中的图片，使用import的图片
+    if (imgUrl && imageMap[imgUrl]) {
+      return imageMap[imgUrl];
+    }
+    // 默认图片
+    return defaultImage;
   };
 
   useEffect(() => {
@@ -69,7 +82,7 @@ const FormTitle: React.FC<FormTitleProps> = ({
     <div className={styles.formHeader}>
       {titleImageShow && (
         <div className={styles.headerImg}>
-          {/* <img src={getImageUrl(titleImageUrl)} alt="Title" /> */}
+          <img src={getImageUrl('image.jpg')} alt="Title" />
         </div>
       )}
       <section className={styles.titleSection} style={computedStyle as any}>
