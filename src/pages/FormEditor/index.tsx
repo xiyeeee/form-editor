@@ -5,8 +5,9 @@
  * @LastEditors: Xiyeeee
  * @LastEditTime: 2025-09-01 20:54:07
  */
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Button, notification, Tooltip, Typography } from 'antd';
+import Icon from './icon';
 import {
   DndContext,
   DragOverlay,
@@ -28,7 +29,6 @@ import {
 import { useSortable } from '@dnd-kit/sortable';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { HolderOutlined } from '@ant-design/icons';
 import { useNavigate } from 'umi';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
@@ -46,6 +46,37 @@ const { Text } = Typography;
 import { v4 as uuidv4 } from 'uuid';
 import { FormComponent, setCurrentComponent, updateComponent } from '@/store/formSlice';
 import { useDispatch } from 'react-redux';
+import Preview from '../Preview/index';
+import theme1Image from '@/assets/theme/theme1.jpg';
+import theme2Image from '@/assets/theme/theme2.png';
+import theme3Image from '@/assets/theme/theme3.png';
+
+// 获取主题图片的方法
+const getThemeImages = () => {
+  const themes = [
+    {
+      id: 'theme1',
+      name: '默认主题',
+      imageUrl: theme1Image,
+      alt: '默认主题背景',
+    },
+    {
+      id: 'theme2',
+      name: '主题2',
+      imageUrl: theme2Image,
+      alt: '主题2背景',
+    },
+    {
+      id: 'theme3',
+      name: '主题3',
+      imageUrl: theme3Image,
+      alt: '主题3背景',
+    },
+  ];
+
+  return themes;
+};
+
 // 侧边栏拖拽组件项
 interface DraggableComponentItemProps {
   component: any;
@@ -205,10 +236,6 @@ const DraggableFormComponent: React.FC<DraggableFormComponentProps> = ({
 };
 const compList = [...CompListData]; // 组件列表
 
-interface ActiveCompType {
-  type: 'component' | 'header';
-  id: string;
-}
 interface FooterType {
   id: string;
   size: string;
@@ -248,8 +275,10 @@ const FormEditor: React.FC = () => {
   const { globalFormConfig, currentComponent } = useSelector((state: RootState) => state.form);
   // 当前选中的分类
   const [activeType, setActiveType] = useState('basic');
+  const [themeImage, setThemeImage] = useState<string | null>(null);
   const [selectForm, setSelectForm] = useState({});
   const [activeCompId, setActiveCompId] = useState('');
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [pageCompList, setPageCompList] = useState<FormComponent[]>([]);
   // 防止 useEffect 覆盖本地更新的 ref 标志
   const isLocalUpdate = useRef(false);
@@ -576,7 +605,13 @@ const FormEditor: React.FC = () => {
   const callback = () => {
     navigate('/');
   };
+  const handlePreview = () => {
+    setPreviewOpen(true);
+  };
 
+  const handlePreviewClose = () => {
+    setPreviewOpen(false);
+  };
   return (
     <div className={styles.formEditor}>
       <div className={styles.navData}>
@@ -625,32 +660,51 @@ const FormEditor: React.FC = () => {
           onDragEnd={handleDragEnd}
         >
           <FormSideBar activeType={activeType} setActiveType={setActiveType}></FormSideBar>
-          {/* 拖拽组件 */}
-          <SidebarDropZone>
-            {compList.map(componentsItem => (
-              <div className={styles.componentItem} key={componentsItem.type}>
-                <div className={styles.compItemTitle}>
-                  {componentsItem.name}
-                  {styles.tooltip && (
-                    <Tooltip title={componentsItem.tooltip}>
-                      <QuestionCircleOutlined />
-                    </Tooltip>
-                  )}
+          {activeType === 'theme' && (
+            <div className={styles.themeList}>
+              {getThemeImages().map(theme => (
+                <div
+                  key={theme.id}
+                  className={styles.themeItem}
+                  onClick={() => setThemeImage(theme.imageUrl)}
+                >
+                  <img src={theme.imageUrl} alt={theme.alt} />
+                  <div className={styles.themeName}>{theme.name}</div>
                 </div>
-                <div className={classNames(styles.compList)}>
-                  {componentsItem.children.map(component => (
-                    <DraggableComponentItem
-                      key={`${componentsItem.type}-${component.type}`}
-                      component={component}
-                      onClick={() => handleCreateFormComponents(component)}
-                    />
-                  ))}
+              ))}
+            </div>
+          )}
+          {activeType === 'basic' && (
+            <SidebarDropZone>
+              {compList.map(componentsItem => (
+                <div className={styles.componentItem} key={componentsItem.type}>
+                  <div className={styles.compItemTitle}>
+                    {componentsItem.name}
+                    {styles.tooltip && (
+                      <Tooltip title={componentsItem.tooltip}>
+                        <QuestionCircleOutlined />
+                      </Tooltip>
+                    )}
+                  </div>
+                  <div className={classNames(styles.compList)}>
+                    {componentsItem.children.map(component => (
+                      <DraggableComponentItem
+                        key={`${componentsItem.type}-${component.type}`}
+                        component={component}
+                        onClick={() => handleCreateFormComponents(component)}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </SidebarDropZone>
-          <div className={styles.comps}>
+              ))}
+            </SidebarDropZone>
+          )}
+          <div className={styles.editorCanvas} style={{ backgroundImage: `url(${themeImage})` }}>
             <div className={styles.formPreview}>
+              <div className={styles.previewButton} onClick={() => handlePreview()}>
+                <img src={Icon.Preview} alt=""></img>
+                <div className={styles.label}>预览</div>
+              </div>
               <CanvasDropZone onDrop={() => {}}>
                 <SortableContext
                   items={pageCompList.map(item => item.id)}
@@ -761,6 +815,13 @@ const FormEditor: React.FC = () => {
             ></FormSetting>
           </div>
         </DndContext>
+        <Preview
+          open={previewOpen}
+          selectForm={selectForm}
+          pageFooter={pageFooter}
+          pageCompList={pageCompList}
+          onClose={handlePreviewClose}
+        />
       </div>
     </div>
   );
