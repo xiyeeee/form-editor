@@ -5,6 +5,7 @@ import styles from './index.module.less';
 
 interface Props {
   isDev: boolean;
+  isPreviewRender?: boolean;
   pagingValue: string;
   pageSubTitle: string;
   pageSubDescription: string;
@@ -13,31 +14,38 @@ interface Props {
 
 const Paging: React.FC<Props> = ({
   isDev,
+  isPreviewRender = false,
   pagingValue,
   pageSubTitle,
   pageSubDescription,
   onSubDataChange,
 }) => {
-  const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (onSubDataChange) {
-      onSubDataChange({ pageSubTitle: value });
-    }
-  }, [onSubDataChange]);
+  const handleTitleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      if (!isPreviewRender && onSubDataChange) {
+        onSubDataChange({ pageSubTitle: value });
+      }
+    },
+    [isPreviewRender, onSubDataChange]
+  );
 
-  const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    if (onSubDataChange) {
-      onSubDataChange({ pageSubDescription: value });
-    }
-  }, [onSubDataChange]);
+  const handleDescriptionChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const value = e.target.value;
+      if (!isPreviewRender && onSubDataChange) {
+        onSubDataChange({ pageSubDescription: value });
+      }
+    },
+    [isPreviewRender, onSubDataChange]
+  );
 
   return (
     <div className={styles.pagingContainer}>
       <Divider className={styles.paging}>
         <span className={styles.pageNumber}>{pagingValue}</span>
       </Divider>
-      
+
       {(isDev || pageSubTitle) && (
         <Input
           className={styles.pageTitle}
@@ -45,7 +53,7 @@ const Paging: React.FC<Props> = ({
           onChange={handleTitleChange}
           placeholder="请输入分页标题"
           variant="borderless"
-          disabled={!isDev}
+          disabled={!isDev || isPreviewRender}
         />
       )}
 
@@ -57,7 +65,7 @@ const Paging: React.FC<Props> = ({
           placeholder="请输入分页描述"
           variant="borderless"
           autoSize={{ minRows: 2, maxRows: 4 }}
-          disabled={!isDev}
+          disabled={!isDev || isPreviewRender}
         />
       )}
     </div>

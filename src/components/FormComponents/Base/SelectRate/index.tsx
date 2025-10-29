@@ -25,7 +25,7 @@ const SelectRateComponent: React.FC<SelectRateComponentProps> = ({
   isPreviewRender = false,
   startValue = 1,
   rateCount = 5,
-  onChange
+  onChange,
 }) => {
   const options = React.useMemo(() => {
     const list = [];
@@ -39,7 +39,7 @@ const SelectRateComponent: React.FC<SelectRateComponentProps> = ({
   }, [startValue, rateCount]);
 
   const handleChange = (value: string) => {
-    if (onChange) {
+    if (!isPreviewRender && onChange) {
       onChange(value);
     }
   };
@@ -50,7 +50,7 @@ const SelectRateComponent: React.FC<SelectRateComponentProps> = ({
         className={styles.selectRate}
         value={dataValue}
         style={{ width: '100%' }}
-        disabled={isDev}
+        disabled={isDev || isPreviewRender}
         placeholder={placeholder}
         options={options}
         onChange={handleChange}

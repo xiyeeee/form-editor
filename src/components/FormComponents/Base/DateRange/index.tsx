@@ -9,6 +9,7 @@ interface DateRangeComponentProps {
   placeholderRange?: [string, string];
   value?: [string, string];
   isDev?: boolean;
+  isPreviewRender?: boolean;
   onChange?: (dates: [string, string]) => void;
 }
 
@@ -16,18 +17,19 @@ const DateRangeComponent: React.FC<DateRangeComponentProps> = ({
   placeholderRange = ['开始日期', '结束日期'],
   value,
   isDev = false,
-  onChange
+  isPreviewRender = false,
+  onChange,
 }) => {
   const handleChange = (_dates: any, dateStrings: [string, string]) => {
-    if (onChange) {
+    if (!isPreviewRender && onChange) {
       onChange(dateStrings);
     }
   };
 
   return (
     <RangePicker
-      disabled={isDev}
-      title={isDev ? '开发模式下禁用' : ''}
+      disabled={isDev || isPreviewRender}
+      title={isDev ? '开发模式下禁用' : isPreviewRender ? '预览模式下禁用' : ''}
       className={styles.dateRangePicker}
       placeholder={placeholderRange}
       value={value ? [dayjs(value[0]), dayjs(value[1])] : null}

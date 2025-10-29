@@ -79,10 +79,10 @@ const RadioComponent: React.FC<RadioComponentProps> = ({
         <div key={index} className={styles.radioItem}>
           <AntRadio
             value={option.value}
-            disabled={isDev}
+            disabled={isDev || isPreviewRender}
             checked={dataValue === option.value}
             onChange={e => {
-              if (onDataChange) {
+              if (onDataChange && !isPreviewRender) {
                 const newValue = e.target.checked ? option.value : '';
                 onDataChange(
                   dataList.map(item => ({
@@ -115,20 +115,29 @@ const RadioComponent: React.FC<RadioComponentProps> = ({
                 className={styles.itemComp}
                 value={option.value}
                 placeholder="待填表者更新"
+                disabled={isPreviewRender}
                 onChange={e => {
-                  const newList = dataList.map((item, i) =>
-                    i === index ? { ...item, value: e.target.value } : item
-                  );
-                  if (onDataChange) {
-                    onDataChange(newList);
+                  if (!isPreviewRender) {
+                    const newList = dataList.map((item, i) =>
+                      i === index ? { ...item, value: e.target.value } : item
+                    );
+                    if (onDataChange) {
+                      onDataChange(newList);
+                    }
                   }
                 }}
               />
             </span>
           )}
-          <span className={styles.delete} onClick={() => deleteSubItem(index)} title={option.label}>
-            <CloseOutlined />
-          </span>
+          {!isPreviewRender && (
+            <span
+              className={styles.delete}
+              onClick={() => deleteSubItem(index)}
+              title={option.label}
+            >
+              <CloseOutlined />
+            </span>
+          )}
         </div>
       ))}
     </div>

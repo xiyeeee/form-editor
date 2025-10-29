@@ -7,6 +7,7 @@ interface RateComponentProps {
   rateCharacter?: number | string;
   rateCount?: number;
   rateAllowHalf?: boolean;
+  isPreviewRender?: boolean;
   onChange?: (value: number) => void;
 }
 
@@ -15,10 +16,11 @@ const RateComponent: React.FC<RateComponentProps> = ({
   rateCharacter,
   rateCount = 5,
   rateAllowHalf = false,
-  onChange
+  isPreviewRender = false,
+  onChange,
 }) => {
   const handleChange = (value: number) => {
-    if (onChange) {
+    if (!isPreviewRender && onChange) {
       onChange(value);
     }
   };
@@ -30,6 +32,7 @@ const RateComponent: React.FC<RateComponentProps> = ({
       count={rateCount}
       allowHalf={rateAllowHalf}
       value={value}
+      disabled={isPreviewRender}
       onChange={handleChange}
     />
   );

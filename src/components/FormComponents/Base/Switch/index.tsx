@@ -7,6 +7,7 @@ interface SwitchComponentProps {
   placeholder?: string;
   value?: boolean;
   isDev?: boolean;
+  isPreviewRender?: boolean;
   dataList?: any[];
   onChange?: (checked: boolean) => void;
 }
@@ -16,19 +17,20 @@ const SwitchComponent: React.FC<SwitchComponentProps> = ({
   placeholder = '开关',
   value = false,
   isDev = false,
+  isPreviewRender = false,
   dataList = [],
-  onChange
+  onChange,
 }) => {
   const handleChange = (checked: boolean) => {
-    if (onChange) {
+    if (!isPreviewRender && onChange) {
       onChange(checked);
     }
   };
 
   return (
     <Switch
-      disabled={isDev}
-      title={isDev ? '开发模式下禁用' : placeholder}
+      disabled={isDev || isPreviewRender}
+      title={isDev ? '开发模式下禁用' : isPreviewRender ? '预览模式下禁用' : placeholder}
       checked={value}
       onChange={handleChange}
       className={styles.switch}

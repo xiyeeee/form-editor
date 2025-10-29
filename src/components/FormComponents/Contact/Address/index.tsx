@@ -9,6 +9,7 @@ interface AddressProps {
   address_detail_placeholder: string;
   value: string;
   isDev: boolean;
+  isPreviewRender?: boolean;
   onChange?: (value: string) => void;
 }
 
@@ -17,16 +18,21 @@ const Address: React.FC<AddressProps> = ({
   address_placeholder,
   address_detail_placeholder,
   isDev,
-  onChange
+  isPreviewRender = false,
+  onChange,
 }) => {
   const options = [...addressData];
 
   const handleCascaderChange = (selectedValue: any) => {
-    onChange?.(selectedValue);
+    if (!isPreviewRender) {
+      onChange?.(selectedValue);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange?.(e.target.value);
+    if (!isPreviewRender) {
+      onChange?.(e.target.value);
+    }
   };
 
   return (
@@ -35,14 +41,14 @@ const Address: React.FC<AddressProps> = ({
         value={value as any}
         options={options}
         placeholder={address_placeholder}
-        disabled={isDev}
+        disabled={isDev || isPreviewRender}
         style={{ marginBottom: '10px', width: '100%' }}
         onChange={handleCascaderChange}
       />
       <Input
         value={value}
         placeholder={address_detail_placeholder}
-        disabled={isDev}
+        disabled={isDev || isPreviewRender}
         onChange={handleInputChange}
       />
     </div>

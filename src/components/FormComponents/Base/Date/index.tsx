@@ -7,6 +7,7 @@ interface DateComponentProps {
   placeholder?: string;
   value?: string;
   isDev?: boolean;
+  isPreviewRender?: boolean;
   onChange?: (value: string) => void;
 }
 
@@ -14,18 +15,19 @@ const DateComponent: React.FC<DateComponentProps> = ({
   placeholder = '请选择日期',
   value,
   isDev = false,
-  onChange
+  isPreviewRender = false,
+  onChange,
 }) => {
   const handleChange = (_date: any, dateString: string | string[]) => {
-    if (onChange && typeof dateString === 'string') {
+    if (!isPreviewRender && onChange && typeof dateString === 'string') {
       onChange(dateString);
     }
   };
 
   return (
     <DatePicker
-      disabled={isDev}
-      title={isDev ? '开发模式下禁用' : placeholder}
+      disabled={isDev || isPreviewRender}
+      title={isDev ? '开发模式下禁用' : isPreviewRender ? '预览模式下禁用' : placeholder}
       className={styles.datePicker}
       placeholder={placeholder}
       value={value ? moment(value) : null}

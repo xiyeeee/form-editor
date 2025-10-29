@@ -7,9 +7,6 @@ export default function Layout() {
   return (
     <Provider store={store}>
       <div className={styles.navs}>
-        <ul>
-          <li></li>
-        </ul>
         <Outlet />
       </div>
     </Provider>

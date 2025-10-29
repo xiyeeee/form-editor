@@ -8,6 +8,7 @@ interface UploadComponentProps {
   placeholder?: string;
   value?: string;
   isDev?: boolean;
+  isPreviewRender?: boolean;
   fileList?: any[];
   onChange?: (fileList: any[]) => void;
 }
@@ -17,25 +18,28 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
   placeholder = '点击上传',
   value,
   isDev = false,
+  isPreviewRender = false,
   fileList = [],
   onChange,
 }) => {
   const handleChange = (info: any) => {
-    if (onChange) {
+    if (!isPreviewRender && onChange) {
       onChange(info.fileList);
     }
   };
 
   return (
     <Upload
-      disabled={isDev}
+      disabled={isDev || isPreviewRender}
       fileList={fileList}
       name="file"
       action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
       onChange={handleChange}
       className={styles.upload}
     >
-      <Button icon={<UploadOutlined />}>{placeholder}</Button>
+      <Button icon={<UploadOutlined />} disabled={isDev || isPreviewRender}>
+        {placeholder}
+      </Button>
     </Upload>
   );
 };

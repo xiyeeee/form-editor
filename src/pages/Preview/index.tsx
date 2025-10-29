@@ -36,11 +36,6 @@ const Preview: React.FC<PreviewProps> = ({
     displayPaging: true,
   };
 
-  const getSize = () => {
-    const data = pageFooter?.value;
-    return data?.size === 'large' ? '0 26px' : data?.size === 'small' ? '0 10px' : '0 16px';
-  };
-
   const getLineHeight = () => {
     const data = pageFooter?.value;
     return data?.size === 'large' ? '40px' : data?.size === 'small' ? '24px' : '32px';
@@ -112,18 +107,13 @@ const Preview: React.FC<PreviewProps> = ({
                 <div
                   className={`${styles.formFooter} ${styles.formItem}`}
                   style={{
-                    textAlign: (pageFooter?.position as any) || 'left',
+                    textAlign: (pageFooter?.position as any) || 'center',
                   }}
                 >
                   <Button
                     icon={pageFooter?.buttonIconShowBool ? <CheckOutlined /> : null}
-                    className={styles.submit}
                     type="primary"
                     size={pageFooter?.size}
-                    style={{
-                      padding: getSize(),
-                      lineHeight: getLineHeight(),
-                    }}
                   >
                     {pageFooter?.buttonText || '提交'}
                   </Button>

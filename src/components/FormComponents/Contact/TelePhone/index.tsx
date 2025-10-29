@@ -8,24 +8,28 @@ interface TelePhoneProps {
   placeholder: string;
   value: string | null;
   isDev: boolean;
+  isPreviewRender?: boolean;
   onChange?: (value: string) => void;
 }
 
-const TelePhone: React.FC<TelePhoneProps> = ({ 
-  placeholder, 
-  value, 
-  isDev, 
-  onChange 
+const TelePhone: React.FC<TelePhoneProps> = ({
+  placeholder,
+  value,
+  isDev,
+  isPreviewRender = false,
+  onChange,
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange?.(e.target.value);
+    if (!isPreviewRender) {
+      onChange?.(e.target.value);
+    }
   };
 
   return (
     <Input
       value={value || ''}
       placeholder={placeholder}
-      disabled={isDev}
+      disabled={isDev || isPreviewRender}
       onChange={handleChange}
       prefix={<img src={TelePhoneIcon} alt="Telephone" className={styles.icon} />}
     />

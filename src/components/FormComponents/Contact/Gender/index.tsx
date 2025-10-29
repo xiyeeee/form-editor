@@ -11,6 +11,7 @@ interface GenderProps {
   layoutType: string;
   isDev: boolean;
   isSelected: boolean;
+  isPreviewRender?: boolean;
   onChange?: (value: any) => void;
 }
 
@@ -22,6 +23,7 @@ const Gender: React.FC<GenderProps> = ({
   layoutType,
   isDev,
   isSelected,
+  isPreviewRender = false,
   onChange,
 }) => {
   const [updateKey, setUpdateKey] = useState('');
@@ -36,6 +38,8 @@ const Gender: React.FC<GenderProps> = ({
   };
 
   const changeValue = (event: React.FocusEvent<HTMLDivElement>, index: number) => {
+    if (isPreviewRender) return;
+
     const { innerHTML, innerText } = event.target;
     const hasDataBool = innerText !== null && innerText !== '\n';
     const isOtherBool = index === 2;
@@ -70,7 +74,7 @@ const Gender: React.FC<GenderProps> = ({
     <Checkbox.Group
       value={dataValue as any}
       options={options}
-      disabled={isDev}
+      disabled={isDev || isPreviewRender}
       style={layoutType === 'vertical' || isSelected ? radioVerticalStyle : radioStyle}
       className={`${styles.groupItem} ${isSelected ? styles.groupItemSelect : ''}`}
       key={isSelected + updateKey}
@@ -80,7 +84,7 @@ const Gender: React.FC<GenderProps> = ({
         <div key={index} className={styles.listItem}>
           <div
             className={styles.editorItem}
-            contentEditable
+            contentEditable={!isPreviewRender}
             suppressContentEditableWarning
             onBlur={e => changeValue(e, index)}
           >

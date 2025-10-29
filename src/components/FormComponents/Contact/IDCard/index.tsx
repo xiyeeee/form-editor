@@ -8,24 +8,28 @@ interface IDCardProps {
   placeholder: string;
   value: string;
   isDev: boolean;
+  isPreviewRender?: boolean;
   onChange?: (value: string) => void;
 }
 
-const IDCard: React.FC<IDCardProps> = ({ 
-  placeholder, 
-  value, 
-  isDev, 
-  onChange 
+const IDCard: React.FC<IDCardProps> = ({
+  placeholder,
+  value,
+  isDev,
+  isPreviewRender = false,
+  onChange,
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange?.(e.target.value);
+    if (!isPreviewRender) {
+      onChange?.(e.target.value);
+    }
   };
 
   return (
     <Input
       value={value}
       placeholder={placeholder}
-      disabled={isDev}
+      disabled={isDev || isPreviewRender}
       onChange={handleChange}
       prefix={<img src={IDIcon} alt="ID" className={styles.icon} />}
     />

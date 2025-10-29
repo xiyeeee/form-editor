@@ -8,6 +8,7 @@ interface UrlComponentProps {
   placeholder?: string;
   value?: string;
   isDev?: boolean;
+  isPreviewRender?: boolean;
   onChange?: (value: string) => void;
 }
 
@@ -16,18 +17,19 @@ const UrlComponent: React.FC<UrlComponentProps> = ({
   placeholder = '请输入URL地址',
   value,
   isDev = false,
-  onChange
+  isPreviewRender = false,
+  onChange,
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (onChange) {
+    if (!isPreviewRender && onChange) {
       onChange(e.target.value);
     }
   };
 
   return (
     <Input
-      disabled={isDev}
-      title={isDev ? '开发模式下禁用' : placeholder}
+      disabled={isDev || isPreviewRender}
+      title={isDev ? '开发模式下禁用' : isPreviewRender ? '预览模式下禁用' : placeholder}
       value={value}
       placeholder={placeholder}
       prefix={<IeOutlined />}

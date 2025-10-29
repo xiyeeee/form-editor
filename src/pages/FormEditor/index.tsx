@@ -37,7 +37,13 @@ import FormSideBar from './components/FormSideBar';
 import { CompListData } from './componentData';
 import styles from './index.module.less';
 import classNames from 'classnames';
-import { QuestionCircleOutlined } from '@ant-design/icons';
+import {
+  QuestionCircleOutlined,
+  RedoOutlined,
+  RocketOutlined,
+  SearchOutlined,
+  SnippetsOutlined,
+} from '@ant-design/icons';
 import FormSetting from './components/FormSetting';
 import { IgnoreLineNumberTypeList, CompType } from './componentData';
 import * as _ from 'lodash-es';
@@ -272,6 +278,8 @@ const Placeholder: React.FC<{ icon?: string; label?: string; tail?: boolean }> =
 const FormEditor: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [editTime, setEditTime] = useState(new Date().toLocaleString());
+
   const { globalFormConfig, currentComponent } = useSelector((state: RootState) => state.form);
   // 当前选中的分类
   const [activeType, setActiveType] = useState('basic');
@@ -612,39 +620,32 @@ const FormEditor: React.FC = () => {
   const handlePreviewClose = () => {
     setPreviewOpen(false);
   };
+  const handlePublish = () => {
+    setEditTime(new Date().toLocaleString());
+  };
   return (
     <div className={styles.formEditor}>
       <div className={styles.navData}>
         <div className={styles.header}>
-          <div className={styles.callback} onClick={callback}>
-            <img src="/assets/form-editor/callback.svg" alt="callback" />
-          </div>
           <div className={styles.titleData}>
             <span className={styles.name}>React动态表单</span>
             <Text type="secondary" className={styles.time}>
-              编辑于 2024-11-03 09:12
+              编辑于{editTime}
             </Text>
           </div>
           <div className={styles.control}>
             <div className={styles.contItem}>
-              <Button type="default">
-                <img className={styles.btnIcon} src="/assets/form-editor/github.svg" alt="github" />
-                <span className={styles.name}>GitHub</span>
+              <Button type="default" icon={<RedoOutlined />} onClick={callback}>
+                <span className={styles.name}>返回</span>
               </Button>
             </div>
             <div className={styles.contItem}>
-              <Button type="default">
-                <img className={styles.btnIcon} src="/assets/form-editor/save.svg" alt="save" />
+              <Button type="default" icon={<SnippetsOutlined />}>
                 <span className={styles.name}>保存</span>
               </Button>
             </div>
             <div className={styles.contItem}>
-              <Button type="primary">
-                <img
-                  className={styles.btnIcon}
-                  src="/assets/form-editor/publish.svg"
-                  alt="publish"
-                />
+              <Button type="primary" icon={<RocketOutlined />} onClick={handlePublish}>
                 <span className={styles.name}>发布</span>
               </Button>
             </div>
@@ -700,11 +701,11 @@ const FormEditor: React.FC = () => {
             </SidebarDropZone>
           )}
           <div className={styles.editorCanvas} style={{ backgroundImage: `url(${themeImage})` }}>
+            <div className={styles.previewButton} onClick={() => handlePreview()}>
+              <img src={Icon.Preview} alt=""></img>
+              <div className={styles.label}>预览</div>
+            </div>
             <div className={styles.formPreview}>
-              <div className={styles.previewButton} onClick={() => handlePreview()}>
-                <img src={Icon.Preview} alt=""></img>
-                <div className={styles.label}>预览</div>
-              </div>
               <CanvasDropZone onDrop={() => {}}>
                 <SortableContext
                   items={pageCompList.map(item => item.id)}

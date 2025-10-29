@@ -7,6 +7,7 @@ interface NPSComponentProps {
   startValue: number;
   rateCount: number;
   isDev: boolean;
+  isPreviewRender?: boolean;
   onChange?: (value: number) => void;
 }
 
@@ -16,6 +17,7 @@ const NPSComponent: React.FC<NPSComponentProps> = ({
   startValue,
   rateCount,
   isDev,
+  isPreviewRender = false,
   onChange,
 }) => {
   const [hoverIndex, setHoverIndex] = useState(-1);
@@ -32,11 +34,14 @@ const NPSComponent: React.FC<NPSComponentProps> = ({
     setHoverIndex(index);
   }, []);
 
-  const selectValue = useCallback((item: number) => {
-    if (!isDev && onChange) {
-      onChange(item);
-    }
-  }, [isDev, onChange]);
+  const selectValue = useCallback(
+    (item: number) => {
+      if (!isDev && !isPreviewRender && onChange) {
+        onChange(item);
+      }
+    },
+    [isDev, isPreviewRender, onChange]
+  );
 
   return (
     <div className={styles.npsList}>
@@ -44,14 +49,14 @@ const NPSComponent: React.FC<NPSComponentProps> = ({
         <div
           key={index}
           className={styles.npsItem}
-          onMouseEnter={!isDev ? () => changeIndex(index) : undefined}
-          onMouseLeave={!isDev ? () => changeIndex(-1) : undefined}
-          onClick={!isDev ? () => selectValue(item) : undefined}
+          onMouseEnter={!isDev && !isPreviewRender ? () => changeIndex(index) : undefined}
+          onMouseLeave={!isDev && !isPreviewRender ? () => changeIndex(-1) : undefined}
+          onClick={!isDev && !isPreviewRender ? () => selectValue(item) : undefined}
         >
           <span
             className={`
               ${styles.item}
-              ${isDev ? styles.isDev : ''}
+              ${isDev || isPreviewRender ? styles.isDev : ''}
               ${hoverIndex >= index ? styles.hoverChildrenIndex : ''}
               ${value >= index ? styles.active : ''}
             `}

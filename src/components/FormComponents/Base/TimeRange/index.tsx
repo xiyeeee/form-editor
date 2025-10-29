@@ -8,6 +8,7 @@ interface TimeRangeComponentProps {
   placeholderRange?: [string, string];
   value?: [string, string];
   isDev?: boolean;
+  isPreviewRender?: boolean;
   onChange?: (times: [string, string]) => void;
 }
 
@@ -16,18 +17,19 @@ const TimeRangeComponent: React.FC<TimeRangeComponentProps> = ({
   placeholderRange = ['开始时间', '结束时间'],
   value,
   isDev = false,
-  onChange
+  isPreviewRender = false,
+  onChange,
 }) => {
   const handleChange = (times: any, timeStrings: [string, string]) => {
-    if (onChange) {
+    if (!isPreviewRender && onChange) {
       onChange(timeStrings);
     }
   };
 
   return (
     <TimePicker.RangePicker
-      disabled={isDev}
-      title={isDev ? '开发模式下禁用' : ''}
+      disabled={isDev || isPreviewRender}
+      title={isDev ? '开发模式下禁用' : isPreviewRender ? '预览模式下禁用' : ''}
       className={styles.timeRangePicker}
       placeholder={placeholderRange}
       value={value ? [dayjs(value[0], 'HH:mm:ss'), dayjs(value[1], 'HH:mm:ss')] : null}

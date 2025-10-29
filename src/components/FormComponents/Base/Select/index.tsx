@@ -8,6 +8,7 @@ interface SelectComponentProps {
   isRequired?: boolean;
   value?: string | null;
   isDev: boolean;
+  isPreviewRender?: boolean;
   onChange?: (value: string) => void;
 }
 
@@ -17,15 +18,18 @@ const SelectComponent: React.FC<SelectComponentProps> = ({
   isRequired,
   value,
   isDev,
+  isPreviewRender = false,
   onChange,
 }) => {
   const handleChange = (selectedValue: string) => {
-    onChange?.(selectedValue);
+    if (!isPreviewRender) {
+      onChange?.(selectedValue);
+    }
   };
 
   return (
     <Select
-      disabled={isDev}
+      disabled={isDev || isPreviewRender}
       value={value}
       onChange={handleChange}
       placeholder="请选择"
