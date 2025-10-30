@@ -43,8 +43,11 @@
     user-select: none; /* 避免拖拽时选中文本 */
     -webkit-user-drag: none; /* 避免原生拖拽图片 */
     cursor: grab;
+    transition: all 0.3s ease;
     &:hover {
       border-color: royalblue;
+      box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+      transform: translateY(-2px);
     }
     &:active {
       cursor: grabbing;
@@ -366,6 +369,12 @@
     .dragHandle {
       opacity: 1;
     }
+  }
+}
+.compItem {
+  &:hover {
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+    transform: translateY(-2px);
   }
 }
 
