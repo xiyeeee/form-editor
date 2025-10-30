@@ -364,13 +364,20 @@
   position: relative;
 
   transition: all 0.2s ease;
-  &:hover {
-    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
-    transform: translateY(-2px);
-  }
+
   &:hover {
     .dragHandle {
       opacity: 1;
+    }
+  }
+}
+.editorCanvas {
+  .componentItem {
+    &:hover {
+      box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+      transform: translateY(-2px);
+      border-radius: 6px;
+      transition: all 0.2s ease;
     }
   }
 }
