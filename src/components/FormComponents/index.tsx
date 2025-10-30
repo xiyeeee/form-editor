@@ -50,6 +50,8 @@ import WXComponent from './Contact/WX';
 import FormTitleComponent from './Show/FormTitle';
 import ImageComponent from './Show/Image';
 import VideoComponent from './Show/Video';
+import UploadComponent from './Base/Upload';
+import ElectronicSignature from './Show/ElectronicSignature';
 
 const { Title, Text } = Typography;
 
@@ -112,7 +114,8 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
       IDCard: IDCardComponent,
       TelePhone: TelePhoneComponent,
       WX: WXComponent,
-
+      Upload: UploadComponent,
+      ElectronicSignature: ElectronicSignature,
       // Show components
       FormTitle: FormTitleComponent,
       Image: ImageComponent,

@@ -7,7 +7,7 @@ const getCurrentTime = () => {
 };
 import NoDataImg from '@/assets/form-editor/no-data.svg';
 import FormIcon from '@/assets/form-editor/no-data.svg';
-import styles from './formList.module.less';
+import styles from './index.module.less';
 
 const { Title, Text } = Typography;
 

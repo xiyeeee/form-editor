@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from './title.module.less';
+import styles from './index.module.less';
 
 interface TitleProps {
   title: string;
@@ -14,4 +14,3 @@ const Title: React.FC<TitleProps> = ({ title }) => {
 };
 
 export default Title;
-

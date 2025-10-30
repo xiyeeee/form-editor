@@ -11,7 +11,7 @@ const storageStore = () => ({
     }
   },
 });
-import styles from './pageNav.module.less';
+import styles from './index.module.less';
 
 const { Search } = Input;
 

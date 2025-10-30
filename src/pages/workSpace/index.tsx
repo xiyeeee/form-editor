@@ -1,7 +1,7 @@
 import React from 'react';
-import Title from '../comps/title';
-import FormList from '../comps/formList';
-import Layout from '../components/Layout';
+import Title from './comps/Title';
+import FormList from './comps/FormList';
+import Layout from './components/Layout';
 
 const HomePage: React.FC = () => {
   return (

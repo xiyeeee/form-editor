@@ -1,6 +1,6 @@
 import React from 'react';
 import { Cascader, Input } from 'antd';
-import { addressData } from '../../../../pages/FormEditor/addressData';
+import { addressData } from '../../../../pages/formEditor/addressData';
 import styles from './index.module.less';
 
 interface AddressProps {
