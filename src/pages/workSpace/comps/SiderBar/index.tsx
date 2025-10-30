@@ -37,7 +37,7 @@ const RouteComp: React.FC = () => {
     {
       title: '主页',
       icon: HomeOutlined,
-      route: '/',
+      route: '/workspace',
     },
     {
       title: '项目开发',

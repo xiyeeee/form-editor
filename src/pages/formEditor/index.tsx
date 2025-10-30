@@ -606,7 +606,7 @@ const FormEditor: React.FC = () => {
     setOverId(null);
   };
   const callback = () => {
-    navigate('/');
+    navigate('/workspace');
   };
   const handlePreview = () => {
     setPreviewOpen(true);

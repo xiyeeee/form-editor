@@ -107,7 +107,7 @@ const Preview: React.FC<PreviewProps> = ({
                 <div
                   className={`${styles.formFooter} ${styles.formItem}`}
                   style={{
-                    textAlign: (pageFooter?.position as any) || 'center',
+                    textAlign: 'center',
                   }}
                 >
                   <Button

@@ -30,12 +30,12 @@ const HomePage: React.FC = () => {
         <div className={styles.nav}>
           <nav>
             <div className={styles.controls}>
-              <Button size="large" type="primary" className={styles.login} onClick={() => {}}>
+              {/* <Button size="large" type="primary" className={styles.login} onClick={() => {}}>
                 登录
               </Button>
               <Button type="default" size={size} className={styles.toHome} onClick={toProfile}>
                 进入工作台
-              </Button>
+              </Button> */}
             </div>
           </nav>
         </div>
