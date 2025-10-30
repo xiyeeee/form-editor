@@ -1,10 +1,7 @@
 import { defineConfig } from 'umi';
-
+import routes from './src/routes/index';
 export default defineConfig({
-  routes: [
-    { path: '/', component: '@/pages/index' },
-    { path: '/form-editor', component: '@/pages/FormEditor' },
-  ],
+  routes: routes,
   plugins: ['@umijs/plugins/dist/antd'],
   antd: {},
   npmClient: 'yarn',

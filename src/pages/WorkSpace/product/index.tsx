@@ -1,0 +1,35 @@
+import React, { useState } from 'react';
+import { Button } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import Title from '../comps/title';
+import FormList from '../comps/formList';
+import CreateForm from './createForm';
+import Layout from '../components/Layout';
+import styles from './index.module.less';
+
+const Product: React.FC = () => {
+  const [openState, setOpenState] = useState(false);
+
+  const open = () => {
+    setOpenState(true);
+  };
+
+  const handleCreateForm = (state: boolean) => {
+    setOpenState(state);
+  };
+
+  return (
+    <Layout>
+      <Title title="项目开发" />
+      <div className={styles['btn-create']}>
+        <Button icon={<PlusOutlined />} type="primary" onClick={open}>
+          创建
+        </Button>
+      </div>
+      <CreateForm openState={openState} onHandleCreateForm={handleCreateForm} />
+      <FormList />
+    </Layout>
+  );
+};
+
+export default Product;

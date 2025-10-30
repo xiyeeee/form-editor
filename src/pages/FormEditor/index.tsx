@@ -292,7 +292,6 @@ const FormEditor: React.FC = () => {
   const isLocalUpdate = useRef(false);
 
   // 拖拽相关状态
-  const [activeId, setActiveId] = useState<string | null>(null);
   const [draggedItem, setDraggedItem] = useState<FormComponent | null>(null);
   const [draggedItemType, setDraggedItemType] = useState<'canvas' | 'sidebar'>('canvas');
   const [overId, setOverId] = useState<string | null>(null);
@@ -498,7 +497,6 @@ const FormEditor: React.FC = () => {
   // 拖拽开始事件
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    setActiveId(active.id as string);
     // 检查是否是侧边栏组件（以 'sidebar-' 开头）
     if (active.id.toString().startsWith('sidebar-')) {
       setDraggedItemType('sidebar');
@@ -605,7 +603,6 @@ const FormEditor: React.FC = () => {
     handleResetDragEnd();
   };
   const handleResetDragEnd = () => {
-    setActiveId(null);
     setDraggedItem(null);
     setDraggedItemType('canvas');
     setOverId(null);
