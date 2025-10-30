@@ -75,7 +75,7 @@ const ElectronicSignature: React.FC<Props> = ({ id, isPreviewRender, previewType
     let width = 300; // 默认宽度
 
     if (isPreviewRender) {
-      width = previewType === 'PC' ? 566 : 350;
+      width = previewType === 'PC' ? 566 : 300;
     } else {
       // 在非预览模式下，可以根据容器宽度自适应
       const container = document.getElementById(`signature-${id}`);

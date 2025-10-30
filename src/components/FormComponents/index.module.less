@@ -145,7 +145,8 @@
   cursor: pointer;
   transition: all 0.3s ease;
 }
-
+.cursorMove {
+}
 .compItem {
   &.selected {
     border-color: #1890ff;
@@ -156,6 +157,14 @@
     border-color: #1890ff;
     background: #f0f8ff;
     box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  }
+
+  &.previewMode {
+    &:hover {
+      border-color: #d9d9d9;
+      background: #fff;
+      box-shadow: none;
+    }
   }
 
   &.selected .activeDrag {

@@ -168,7 +168,9 @@ const FormComponentWrapper: React.FC<FormComponentWrapperProps> = ({
   };
 
   return (
-    <div className={`${styles.compItem} ${isSelected ? styles.selected : ''}`}>
+    <div
+      className={`${styles.compItem} ${isSelected ? styles.selected : ''} ${renderType === 'preview' ? styles.previewMode : ''}`}
+    >
       {displaySection && (
         <div className={styles.compItemTitle}>
           <Title level={5} className={styles.titleValue}>
