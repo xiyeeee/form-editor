@@ -5,7 +5,6 @@ import Title from '../comps/Title';
 import FormList from '../comps/FormList';
 import CreateForm from './createForm';
 import Layout from '../components/Layout';
-import styles from './index.module.less';
 
 const Product: React.FC = () => {
   const [openState, setOpenState] = useState(false);
@@ -21,7 +20,7 @@ const Product: React.FC = () => {
   return (
     <Layout>
       <Title title="项目开发" />
-      <div className={styles['btn-create']}>
+      <div style={{ marginBottom: 16 }}>
         <Button icon={<PlusOutlined />} type="primary" onClick={open}>
           创建
         </Button>

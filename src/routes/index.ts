@@ -1,10 +1,15 @@
 const routes = [
   { path: '/', component: '@/pages/homepage' },
-  { path: '/workspace', component: '@/pages/workSpace' },
-  { path: '/product', component: '@/pages/workSpace/product' },
-  { path: '/template', component: '@/pages/workSpace/template' },
-  { path: '/favorites', component: '@/pages/workSpace/favorites' },
-  { path: '/recycle', component: '@/pages/workSpace/recycle' },
+  {
+    path: '/workspace',
+    component: '@/pages/workSpace',
+    routes: [
+      { path: '/workspace/product', component: '@/pages/workSpace/product' },
+      { path: '/workspace/template', component: '@/pages/workSpace/template' },
+      { path: '/workspace/favorites', component: '@/pages/workSpace/favorites' },
+      { path: '/workspace/recycle', component: '@/pages/workSpace/recycle' },
+    ],
+  },
   { path: '/form-editor', component: '@/pages/formEditor' },
 ];
 

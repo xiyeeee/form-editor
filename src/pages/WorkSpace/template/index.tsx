@@ -6,7 +6,7 @@ import Layout from '../components/Layout';
 const Template: React.FC = () => {
   return (
     <Layout>
-      <Title title="模版" />
+      <Title title="模版库" />
       <FormList type="template" />
     </Layout>
   );

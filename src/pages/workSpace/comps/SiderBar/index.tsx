@@ -7,16 +7,16 @@ import {
   FileTextOutlined,
   HeartOutlined,
   DeleteOutlined,
-  UserOutlined,
   DatabaseOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
+import styles from './index.module.less';
+
 const LogoIcon: React.FC<{ size?: number }> = ({ size = 30 }) => (
   <div style={{ fontSize: 10, color: '#2468f2' }}>
     <img style={{ width: size, height: size }} src={Logo} alt="logo" />
   </div>
 );
-import styles from './index.module.less';
 
 interface NavItem {
   title: string;
@@ -42,22 +42,22 @@ const RouteComp: React.FC = () => {
     {
       title: '项目开发',
       icon: FolderOutlined,
-      route: '/product',
+      route: '/workspace/product',
     },
     {
       title: '模版库',
       icon: FileTextOutlined,
-      route: '/template',
+      route: '/workspace/template',
     },
     {
       title: '收藏',
       icon: HeartOutlined,
-      route: '/favorites',
+      route: '/workspace/favorites',
     },
     {
       title: '回收站',
       icon: DeleteOutlined,
-      route: '/recycle',
+      route: '/workspace/recycle',
     },
   ];
 

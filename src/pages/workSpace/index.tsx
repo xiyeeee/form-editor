@@ -3,7 +3,7 @@ import Title from './comps/Title';
 import FormList from './comps/FormList';
 import Layout from './components/Layout';
 
-const HomePage: React.FC = () => {
+const WorkSpace: React.FC = () => {
   return (
     <Layout>
       <Title title="主页" />
@@ -12,4 +12,4 @@ const HomePage: React.FC = () => {
   );
 };
 
-export default HomePage;
+export default WorkSpace;
