@@ -7,10 +7,8 @@ WORKDIR /app
 # 复制package.json和yarn.lock
 COPY package.json yarn.lock ./
 
-# 安装yarn（如果没有预装）
-RUN npm install -g yarn
-
 # 安装依赖（包括开发依赖，构建时需要）
+# node:18-alpine已预装yarn，无需再安装
 RUN yarn install --frozen-lockfile
 
 # 复制源代码
