@@ -1,5 +1,3 @@
 const umiEslint = require('umi/eslint');
 
-module.exports = [
-  ...umiEslint,
-];
+module.exports = umiEslint || [];
