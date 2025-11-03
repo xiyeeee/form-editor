@@ -22,8 +22,8 @@ docker run -d \
 
 ### 访问应用
 
-- **IP访问：** `http://你的服务器IP:8081`
-- **域名访问：** `http://react-form.xiyeeee.cn`（需配置DNS和Nginx）
+- **IP 访问：** `http://你的服务器IP:8081`
+- **域名访问：** `http://react-form.xiyeeee.cn`（需配置 DNS 和 Nginx）
 
 ## 📋 前置要求
 
@@ -64,11 +64,11 @@ chmod +x deploy.sh
 
 ### Git 标签触发规则
 
-| 标签格式 | 生成镜像版本 | 示例 |
-|---------|-------------|------|
-| `release-v1.2.3` | `1.2.3` | `release-v1.2.3` → `my-docker:1.2.3` |
-| `v1.2.3` | `1.2.3` | `v1.2.3` → `my-docker:1.2.3` |
-| 手动触发 | 自定义版本 | 通过 GitHub Actions 手动指定 |
+| 标签格式         | 生成镜像版本 | 示例                                 |
+| ---------------- | ------------ | ------------------------------------ |
+| `release-v1.2.3` | `1.2.3`      | `release-v1.2.3` → `my-docker:1.2.3` |
+| `v1.2.3`         | `1.2.3`      | `v1.2.3` → `my-docker:1.2.3`         |
+| 手动触发         | 自定义版本   | 通过 GitHub Actions 手动指定         |
 
 ### 自定义构建规则
 
@@ -115,6 +115,7 @@ lemon-form-react/
 ### 阿里云服务器配置
 
 1. **安装 Docker**
+
    ```bash
    # CentOS/RHEL
    sudo yum update -y
@@ -130,6 +131,7 @@ lemon-form-react/
    ```
 
 2. **配置防火墙**
+
    ```bash
    # 开放 80 端口
    sudo firewall-cmd --permanent --add-port=80/tcp
@@ -166,6 +168,7 @@ curl http://localhost/health
 ## 🔍 监控和维护
 
 ### 查看日志
+
 ```bash
 # 查看容器日志
 docker logs lemon-form-react
@@ -175,6 +178,7 @@ docker logs -f lemon-form-react
 ```
 
 ### 更新应用
+
 ```bash
 # 重新部署
 ./deploy.sh
@@ -186,6 +190,7 @@ docker-compose up -d
 ```
 
 ### 回滚版本
+
 ```bash
 # 停止当前容器
 docker stop lemon-form-react
@@ -203,6 +208,7 @@ docker run -d \
 ### 常见问题
 
 1. **镜像拉取失败**
+
    ```bash
    # 检查登录状态
    docker login --username=xiyeeee crpi-ow7mi2apt624v3c8.cn-heyuan.personal.cr.aliyuncs.com
@@ -212,6 +218,7 @@ docker run -d \
    ```
 
 2. **容器启动失败**
+
    ```bash
    # 查看详细日志
    docker logs lemon-form-react
@@ -221,6 +228,7 @@ docker run -d \
    ```
 
 3. **应用无法访问**
+
    ```bash
    # 检查防火墙
    sudo firewall-cmd --list-ports
