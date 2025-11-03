@@ -6,9 +6,9 @@ REGISTRY="crpi-ow7mi2apt624v3c8.cn-heyuan.personal.cr.aliyuncs.com"
 NAMESPACE="xiye-docker"
 IMAGE_NAME="my-docker"
 VERSION=${1:-"latest"}  # 可以传递版本参数，如 ./deploy.sh 1.2.3
-CONTAINER_NAME="lemon-form-react"
+CONTAINER_NAME="form-editor"
 
-echo "开始部署 lemon-form-react 应用..."
+echo "开始部署 form-editor 应用..."
 echo "镜像版本: $VERSION"
 echo "容器名称: $CONTAINER_NAME"
 
@@ -36,8 +36,8 @@ echo "启动新容器..."
 docker run -d \
   --name $CONTAINER_NAME \
   --restart unless-stopped \
-  -p 80:80 \
-  --label "app=lemon-form-react" \
+  -p 8081:80 \
+  --label "app=form-editor" \
   --label "version=$VERSION" \
   --label "updated_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
   $REGISTRY/$NAMESPACE/$IMAGE_NAME:$VERSION
@@ -53,10 +53,11 @@ if docker ps | grep -q $CONTAINER_NAME; then
 
     # 获取服务器IP（如果有公网IP）
     SERVER_IP=$(curl -s ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}' || echo "localhost")
-    echo "应用访问地址: http://$SERVER_IP"
+    echo "应用访问地址: http://$SERVER_IP:8081"
+    echo "子域名访问地址: http://react-form.xiyeeee.cn"
 
     # 健康检查
-    if curl -f http://localhost/health > /dev/null 2>&1; then
+    if curl -f http://localhost:8081/health > /dev/null 2>&1; then
         echo "✅ 健康检查通过"
     else
         echo "⚠️  健康检查失败，请检查应用日志"

@@ -22,135 +22,141 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    # 暂时跳过lint检查，后续可以修复后启用
-    # - name: Run linting
-    #   run: npm run lint
+      # 暂时跳过lint检查，后续可以修复后启用
+      # - name: Run linting
+      #   run: npm run lint
 
-    - name: Build application
-      run: npm run build
+      - name: Build application
+        run: npm run build
 
-    - name: Determine version
-      id: version
-      run: |
-        if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.tag_version }}" != "" ]]; then
-          # 自定义构建版本
-          VERSION="${{ github.event.inputs.tag_version }}"
-        elif [[ "${{ github.ref }}" == refs/tags/release-v* ]]; then
-          # release-v1.2.3 -> 1.2.3
-          VERSION=$(echo "${{ github.ref }}" | sed 's|refs/tags/release-v||')
-        elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-          # v1.2.3 -> 1.2.3
-          VERSION=$(echo "${{ github.ref }}" | sed 's|refs/tags/v||')
-        else
-          # 默认版本号
-          VERSION="latest"
-        fi
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "Building version: $VERSION"
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.tag_version }}" != "" ]]; then
+            # 自定义构建版本
+            VERSION="${{ github.event.inputs.tag_version }}"
+          elif [[ "${{ github.ref }}" == refs/tags/release-v* ]]; then
+            # release-v1.2.3 -> 1.2.3
+            VERSION=$(echo "${{ github.ref }}" | sed 's|refs/tags/release-v||')
+          elif [[ "${{ github.ref }}" == refs/tags/release* ]]; then
+            # release1.2.3 -> 1.2.3
+            VERSION=$(echo "${{ github.ref }}" | sed 's|refs/tags/release||')
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            # v1.2.3 -> 1.2.3
+            VERSION=$(echo "${{ github.ref }}" | sed 's|refs/tags/v||')
+          else
+            # 默认版本号
+            VERSION="latest"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Log in to Alibaba Cloud Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ secrets.ALICLOUD_USERNAME }}
-        password: ${{ secrets.ALICLOUD_PASSWORD }}
+      - name: Log in to Alibaba Cloud Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.ALICLOUD_USERNAME }}
+          password: ${{ secrets.ALICLOUD_PASSWORD }}
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        push: true
-        tags: |
-          ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
-          ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:latest
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        build-args: |
-          BUILDKIT_INLINE_CACHE=1
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
 
-    - name: Generate deployment script
-      run: |
-        cat > deploy.sh << 'EOF'
-        #!/bin/bash
-        set -e
+      - name: Generate deployment script
+        run: |
+          cat > deploy.sh << 'EOF'
+          #!/bin/bash
+          set -e
 
-        # 配置变量
-        REGISTRY="${{ env.REGISTRY }}"
-        NAMESPACE="${{ env.NAMESPACE }}"
-        IMAGE_NAME="${{ env.IMAGE_NAME }}"
-        VERSION="${{ steps.version.outputs.version }}"
-        CONTAINER_NAME="lemon-form-react"
+          # 配置变量
+          REGISTRY="${{ env.REGISTRY }}"
+          NAMESPACE="${{ env.NAMESPACE }}"
+          IMAGE_NAME="${{ env.IMAGE_NAME }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          CONTAINER_NAME="form-editor"
 
-        echo "部署版本: $VERSION"
+          echo "部署版本: $VERSION"
 
-        # 停止并删除旧容器（如果存在）
-        docker stop $CONTAINER_NAME 2>/dev/null || true
-        docker rm $CONTAINER_NAME 2>/dev/null || true
+          # 停止并删除旧容器（如果存在）
+          docker stop $CONTAINER_NAME 2>/dev/null || true
+          docker rm $CONTAINER_NAME 2>/dev/null || true
 
-        # 拉取最新镜像
-        docker pull $REGISTRY/$NAMESPACE/$IMAGE_NAME:$VERSION
+          # 拉取最新镜像
+          docker pull $REGISTRY/$NAMESPACE/$IMAGE_NAME:$VERSION
 
-        # 启动新容器
-        docker run -d \
-          --name $CONTAINER_NAME \
-          --restart unless-stopped \
-          -p 80:80 \
-          --label "version=$VERSION" \
-          --label "updated_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-          $REGISTRY/$NAMESPACE/$IMAGE_NAME:$VERSION
+          # 启动新容器
+          docker run -d \
+            --name $CONTAINER_NAME \
+            --restart unless-stopped \
+            -p 8081:80 \
+            --label "app=form-editor" \
+            --label "version=$VERSION" \
+            --label "updated_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            $REGISTRY/$NAMESPACE/$IMAGE_NAME:$VERSION
 
-        # 清理悬空镜像
-        docker image prune -f
+          # 清理悬空镜像
+          docker image prune -f
 
-        echo "部署完成！"
-        echo "应用访问地址: http://$(curl -s ifconfig.me || hostname -I | awk '{print $1}')"
-        EOF
+          echo "部署完成！"
+          SERVER_IP=$(curl -s ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}' || echo "localhost")
+          echo "应用访问地址: http://$SERVER_IP:8081"
+          echo "子域名访问地址: http://react-form.xiyeeee.cn"
+          EOF
 
-        chmod +x deploy.sh
+          chmod +x deploy.sh
 
-    - name: Upload deployment script
-      uses: actions/upload-artifact@v4
-      with:
-        name: deploy-script-${{ steps.version.outputs.version }}
-        path: deploy.sh
-        retention-days: 7
+      - name: Upload deployment script
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-script-${{ steps.version.outputs.version }}
+          path: deploy.sh
+          retention-days: 7
 
   deploy-to-server:
     needs: build-and-push
     runs-on: ubuntu-latest
     # 暂时禁用自动部署，先确保镜像推送成功
-    if: false && github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/release-v') || startsWith(github.ref, 'refs/tags/v'))
+    if: false && github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/release') || startsWith(github.ref, 'refs/tags/v'))
 
     steps:
-    - name: Deploy to production server
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.SERVER_HOST }}
-        username: ${{ secrets.SERVER_USERNAME }}
-        key: ${{ secrets.SERVER_SSH_KEY }}
-        port: ${{ secrets.SERVER_PORT || 22 }}
-        script: |
-          # 下载部署脚本
-          wget -O deploy.sh "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/download/deploy-script-${{ needs.build-and-push.outputs.version }}"
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script: |
+            # 下载部署脚本
+            wget -O deploy.sh "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/download/deploy-script-${{ needs.build-and-push.outputs.version }}"
 
-          # 执行部署
-          chmod +x deploy.sh
-          ./deploy.sh
+            # 执行部署
+            chmod +x deploy.sh
+            ./deploy.sh
 
-          # 清理部署脚本
-          rm deploy.sh
+            # 清理部署脚本
+            rm deploy.sh
