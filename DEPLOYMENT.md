@@ -2,6 +2,29 @@
 
 本文档介绍如何将 lemon-form-react 应用部署到阿里云服务器。
 
+> 📖 **完整部署文档：** 查看 [DEPLOYMENT_COMPLETE.md](./DEPLOYMENT_COMPLETE.md) 获取详细的逐步部署指南
+
+## 🚀 快速部署
+
+### 一键部署命令
+
+```bash
+# 1. 拉取镜像
+docker pull crpi-ow7mi2apt624v3c8.cn-heyuan.personal.cr.aliyuncs.com/xiye-docker/my-docker:latest
+
+# 2. 启动容器
+docker run -d \
+  --name lemon-form-react \
+  --restart unless-stopped \
+  -p 8081:80 \
+  crpi-ow7mi2apt624v3c8.cn-heyuan.personal.cr.aliyuncs.com/xiye-docker/my-docker:latest
+```
+
+### 访问应用
+
+- **IP访问：** `http://你的服务器IP:8081`
+- **域名访问：** `http://react-form.xiyeeee.cn`（需配置DNS和Nginx）
+
 ## 📋 前置要求
 
 - Docker 和 Docker Compose 已安装
