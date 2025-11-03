@@ -4,17 +4,20 @@ FROM node:18-alpine AS builder
 # 设置工作目录
 WORKDIR /app
 
-# 复制package.json和yarn.lock（如果存在）
-COPY package*.json yarn.lock* ./
+# 复制package.json和yarn.lock
+COPY package.json yarn.lock ./
+
+# 安装yarn（如果没有预装）
+RUN npm install -g yarn
 
 # 安装依赖（包括开发依赖，构建时需要）
-RUN npm ci
+RUN yarn install --frozen-lockfile
 
 # 复制源代码
 COPY . .
 
 # 构建应用
-RUN npm run build
+RUN yarn build
 
 # 第二阶段：生产环境镜像
 FROM nginx:alpine
