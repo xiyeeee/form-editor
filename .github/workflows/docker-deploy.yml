@@ -1,16 +1,9 @@
-name: Docker Build and Deploy
+name: Build and Deploy
 
 on:
   push:
     tags:
-      - 'release-v*'
-      - 'v*'
-  workflow_dispatch:
-    inputs:
-      tag_version:
-        description: 'Custom tag version (e.g., 1.2.3)'
-        required: false
-        default: ''
+      - 'v*.*.*' # 当推送版本标签时触发（如 v1.2.3）
 
 env:
   REGISTRY: crpi-ow7mi2apt624v3c8.cn-heyuan.personal.cr.aliyuncs.com
@@ -34,113 +27,39 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 暂时跳过lint检查，后续可以修复后启用
-      # - name: Run linting
-      #   run: npm run lint
-
       - name: Build application
         run: npm run build
-
-      - name: Determine version
-        id: version
-        run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.tag_version }}" != "" ]]; then
-            # 自定义构建版本
-            VERSION="${{ github.event.inputs.tag_version }}"
-          elif [[ "${{ github.ref }}" == refs/tags/release-v* ]]; then
-            # release-v1.2.3 -> 1.2.3
-            VERSION=$(echo "${{ github.ref }}" | sed 's|refs/tags/release-v||')
-          elif [[ "${{ github.ref }}" == refs/tags/release* ]]; then
-            # release1.2.3 -> 1.2.3
-            VERSION=$(echo "${{ github.ref }}" | sed 's|refs/tags/release||')
-          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            # v1.2.3 -> 1.2.3
-            VERSION=$(echo "${{ github.ref }}" | sed 's|refs/tags/v||')
-          else
-            # 默认版本号
-            VERSION="latest"
-          fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Building version: $VERSION"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Alibaba Cloud Container Registry
-        uses: docker/login-action@v3
+      - name: Login to Aliyun Container Registry
+        run: |
+          docker login --username ${{ secrets.ALICLOUD_USERNAME }} --password ${{ secrets.ALICLOUD_PASSWORD }} ${{ env.REGISTRY }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.ALICLOUD_USERNAME }}
-          password: ${{ secrets.ALICLOUD_PASSWORD }}
+          images: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=tag
+            type=raw,value=latest
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
-            ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: |
-            BUILDKIT_INLINE_CACHE=1
-
-      - name: Generate deployment script
-        run: |
-          cat > deploy.sh << 'EOF'
-          #!/bin/bash
-          set -e
-
-          # 配置变量
-          REGISTRY="${{ env.REGISTRY }}"
-          NAMESPACE="${{ env.NAMESPACE }}"
-          IMAGE_NAME="${{ env.IMAGE_NAME }}"
-          VERSION="${{ steps.version.outputs.version }}"
-          CONTAINER_NAME="form-editor"
-
-          echo "部署版本: $VERSION"
-
-          # 停止并删除旧容器（如果存在）
-          docker stop $CONTAINER_NAME 2>/dev/null || true
-          docker rm $CONTAINER_NAME 2>/dev/null || true
-
-          # 拉取最新镜像
-          docker pull $REGISTRY/$NAMESPACE/$IMAGE_NAME:$VERSION
-
-          # 启动新容器
-          docker run -d \
-            --name $CONTAINER_NAME \
-            --restart unless-stopped \
-            -p 8081:80 \
-            --label "app=form-editor" \
-            --label "version=$VERSION" \
-            --label "updated_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            $REGISTRY/$NAMESPACE/$IMAGE_NAME:$VERSION
-
-          # 清理悬空镜像
-          docker image prune -f
-
-          echo "部署完成！"
-          SERVER_IP=$(curl -s ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}' || echo "localhost")
-          echo "应用访问地址: http://$SERVER_IP:8081"
-          echo "子域名访问地址: http://react-form.xiyeeee.cn"
-          EOF
-
-          chmod +x deploy.sh
-
-      - name: Upload deployment script
-        uses: actions/upload-artifact@v4
-        with:
-          name: deploy-script-${{ steps.version.outputs.version }}
-          path: deploy.sh
-          retention-days: 7
 
   deploy-to-server:
     needs: build-and-push
     runs-on: ubuntu-latest
-    # 暂时禁用自动部署，先确保镜像推送成功
-    if: false && github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/release') || startsWith(github.ref, 'refs/tags/v'))
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
 
     steps:
       - name: Deploy to production server
@@ -151,12 +70,87 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
           script: |
-            # 下载部署脚本
-            wget -O deploy.sh "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/download/deploy-script-${{ needs.build-and-push.outputs.version }}"
+            REGISTRY="${{ env.REGISTRY }}"
+            NAMESPACE="${{ env.NAMESPACE }}"
+            IMAGE_NAME="${{ env.IMAGE_NAME }}"
+            CONTAINER_NAME="form-editor"
+            FULL_IMAGE_NAME="$REGISTRY/$NAMESPACE/$IMAGE_NAME:latest"
 
-            # 执行部署
-            chmod +x deploy.sh
-            ./deploy.sh
+            echo "=========================================="
+            echo "开始部署 form-editor 应用"
+            echo "镜像: $FULL_IMAGE_NAME"
+            echo "=========================================="
 
-            # 清理部署脚本
-            rm deploy.sh
+            # 检查Docker是否运行
+            if ! docker info > /dev/null 2>&1; then
+              echo "❌ 错误: Docker 未运行或无权限访问"
+              exit 1
+            fi
+
+            # 登录阿里云容器镜像服务
+            echo "📦 登录阿里云容器镜像服务..."
+            echo "${{ secrets.ALICLOUD_PASSWORD }}" | docker login --username="${{ secrets.ALICLOUD_USERNAME }}" --password-stdin $REGISTRY || {
+              echo "❌ 登录失败，请检查凭证"
+              exit 1
+            }
+
+            # 停止并删除旧容器
+            echo "🛑 停止旧容器..."
+            docker stop $CONTAINER_NAME 2>/dev/null || true
+            docker rm $CONTAINER_NAME 2>/dev/null || true
+
+            # 拉取最新镜像
+            echo "⬇️  拉取最新镜像: $FULL_IMAGE_NAME"
+            docker pull $FULL_IMAGE_NAME || {
+              echo "❌ 镜像拉取失败"
+              exit 1
+            }
+
+            # 启动新容器
+            echo "🚀 启动新容器..."
+            docker run -d \
+              --name $CONTAINER_NAME \
+              --restart unless-stopped \
+              -p 8081:80 \
+              --label "app=form-editor" \
+              --label "version=latest" \
+              --label "updated_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+              $FULL_IMAGE_NAME || {
+              echo "❌ 容器启动失败"
+              docker logs $CONTAINER_NAME 2>/dev/null || true
+              exit 1
+            }
+
+            # 等待容器启动
+            echo "⏳ 等待容器启动..."
+            sleep 10
+
+            # 检查容器状态
+            if docker ps | grep -q $CONTAINER_NAME; then
+              echo "✅ 容器运行正常"
+              docker ps --filter name=$CONTAINER_NAME --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+              # 健康检查
+              echo "🏥 执行健康检查..."
+              if curl -f http://localhost:8081/health > /dev/null 2>&1; then
+                echo "✅ 健康检查通过"
+              else
+                echo "⚠️  健康检查失败，请检查应用日志"
+                docker logs $CONTAINER_NAME --tail 50
+              fi
+            else
+              echo "❌ 容器启动失败！"
+              docker logs $CONTAINER_NAME 2>/dev/null || true
+              exit 1
+            fi
+
+            # 清理悬空镜像
+            echo "🧹 清理悬空镜像..."
+            docker image prune -f
+
+            echo ""
+            echo "=========================================="
+            echo "🎉 部署完成！"
+            echo "镜像: $FULL_IMAGE_NAME"
+            echo "访问地址: http://form-editor.xiyeeee.cn"
+            echo "=========================================="
